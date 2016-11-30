@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<launch>
+
+
+
+  <node name="vs_grasping_pepper" pkg="vs_grasping_pepper" type="vs_grasping_pepper_node" output="screen">
+    <param name="ip" value="$(optenv PEPPER_IP 131.254.10.126)" />
+    <param name="cmdVelTopicName" value="/pepper/joint_command" />
+    <param name="eMh_pepper_path" value="file://$(find pepper_launch)/data/transformation/eMh_pepper.xml" />
+    <param name="actualPoseTopicName" value="/pepper_hand_pose" />
+    <param name="desiredPoseTopicName" value="/desired_pepper_hand_pose" />
+    <param name="statusPoseHandTopicName" value="/pepper_hand_pose/status" />
+    <param name="statusPoseDesiredTopicName" value="/pepper_hand_pose/status" />    
+    <param name="statusPoseDesired_isEnable" value="false" /> <!-- if statusPoseDesired_isEnable is true the subscribe statusPoseHandTopicName is enabled: the servo is computed when status == 1.  -->
+    <param name="opt_arm" value="right" /> <!-- "rigth" or "left" -->
+
+  </node>
+
+
+</launch>
