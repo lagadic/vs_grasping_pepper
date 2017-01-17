@@ -12,9 +12,11 @@
     <param name="desiredPoseTopicName" value="/object_position" />
     <param name="statusPoseHandTopicName" value="/pepper_hand_pose/status" />
     <param name="statusPoseDesiredTopicName" value="/tracker_mbt/status" />
-    <param name="statusPoseDesired_isEnable" value="false" /> <!-- if statusPoseDesired_isEnable is true the subscribe statusPoseHandTopicName is enabled: the servo is computed when status == 1.  -->
+    <param name="statusPoseDesired_isEnable" value="true" /> <!-- if statusPoseDesired_isEnable is true the subscribe statusPoseHandTopicName is enabled: the servo is computed when status == 1.  -->
     <param name="opt_arm" value="right" /> <!-- "rigth" or "left" -->
-    <param name="mode" value="0" /> <!-- mode visual servoing -->
+    <param name="mode" value="2" /> <!-- mode save offset -->
+
+
   </node>
 
 

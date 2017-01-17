@@ -5,6 +5,7 @@
 #include <sensor_msgs/Image.h>
 #include <sensor_msgs/CameraInfo.h>
 #include <geometry_msgs/PoseStamped.h>
+#include <geometry_msgs/TransformStamped.h>
 #include <std_msgs/Int8.h>
 
 #include <visp3/core/vpHomogeneousMatrix.h>
@@ -29,9 +30,10 @@ public:
   vs_grasping_pepper(ros::NodeHandle &nh);
   ~vs_grasping_pepper();
   void computeControlLaw();
+  void saveOffset();
   void spin();
   void getActualPoseCb(const geometry_msgs::PoseStampedConstPtr &msg);
-  void getDesiredPoseCb(const geometry_msgs::PoseStampedConstPtr &msg);
+  void getDesiredPoseCb(const geometry_msgs::TransformStampedConstPtr &msg);
   void getStatusPoseHandCb(const std_msgs::Int8::ConstPtr &status);
   void getStatusPoseDesiredCb(const std_msgs::Int8::ConstPtr &status);
   void getCameraInfoCb(const sensor_msgs::CameraInfoConstPtr &msg);
@@ -82,6 +84,8 @@ protected:
   vpColVector m_q2_dot;
   vpCameraParameters m_cam;
 
+  std::string m_offsetFileName;
+
   double m_servo_time_init;
   int m_statusPoseHand;
   int m_statusPoseDesired;
@@ -89,6 +93,7 @@ protected:
   vpHomogeneousMatrix m_cMh;
   vpHomogeneousMatrix m_cMdh;
   vpHomogeneousMatrix m_eMh;
+  vpHomogeneousMatrix m_offset;
 
   //conditions
   bool m_cMh_isInitialized;
