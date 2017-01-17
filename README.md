@@ -1,4 +1,12 @@
 # Grasping demo with Pepper
+In this demo Pepper has to track a box and grasp it. Demo under construction.
+
+TODO:
+* Investigate anti-collision
+* Add state machine:
+	* Move right arm to initial position
+	* Start VS
+	* Close the hand and grasp		
 
 ## Instructions:
 
