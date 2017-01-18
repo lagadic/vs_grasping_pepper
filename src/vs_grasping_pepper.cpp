@@ -8,6 +8,7 @@
 #include <visp3/gui/vpDisplayX.h>
 
 #include "vs_grasping_pepper.h"
+#include "recorded_motion.h"
 
 vpDisplayX d;
 
@@ -15,6 +16,8 @@ vs_grasping_pepper::vs_grasping_pepper(ros::NodeHandle &nh): m_cam(),  m_camInfo
 {
   // read in config options
   n = nh;
+
+  m_state = GoToInitialPosition;
 
   m_cMh_isInitialized = false;
   m_cMdh_isInitialized = false;
@@ -24,7 +27,7 @@ vs_grasping_pepper::vs_grasping_pepper(ros::NodeHandle &nh): m_cam(),  m_camInfo
   m_servo_time_init = 0;
   m_offset.setIdentity();
 
-  n.param( "frequency", freq, 100);
+  n.param( "frequency", freq, 50);
   n.param<std::string>("ip", m_ip, "131.254.10.126");
   n.param<std::string>("actualPoseTopicName", actualPoseTopicName, "/pepper_hand_pose");
   n.param<std::string>("desiredPoseTopicName", desiredPoseTopicName, "/desired_pepper_hand_pose");
@@ -40,13 +43,20 @@ vs_grasping_pepper::vs_grasping_pepper(ros::NodeHandle &nh): m_cam(),  m_camInfo
   if (m_mode == 0)
     std::cout << "Mode 0: Visual servoing mode" << std::endl;
 
-  if (m_mode == 2)
-    std::cout << "Mode 2: save offset from object to hand" << std::endl;
-
-
-  if (m_mode < 0 || m_mode > 3)
+  if (m_mode == 1)
   {
-    std::cout <<"ERROR: Mode not recognized. Please choose a mode between 0 and 3. Used default mode 0" << std::endl;
+    m_state = Learning;
+    std::cout << "Mode 1: save pose and servo" << std::endl;
+  }
+  if (m_mode == 2)
+  {
+    m_state = Learning;
+    std::cout << "Mode 2: save offset from object to hand" << std::endl;
+  }
+
+  if (m_mode < 0 || m_mode > 2)
+  {
+    std::cout <<"ERROR: Mode not recognized. Please choose a mode between 0 and 2. Used default mode 0" << std::endl;
     m_mode = 0;
   }
 
@@ -64,7 +74,7 @@ vs_grasping_pepper::vs_grasping_pepper(ros::NodeHandle &nh): m_cam(),  m_camInfo
   statusPoseHandSub = n.subscribe ( statusPoseHandTopicName, 1, (boost::function < void(const std_msgs::Int8::ConstPtr  &)>) boost::bind( &vs_grasping_pepper::getStatusPoseHandCb, this, _1 ));
   m_cameraInfoSub = n.subscribe( m_cameraInfoName, 1, (boost::function < void(const sensor_msgs::CameraInfoConstPtr & )>) boost::bind( &vs_grasping_pepper::getCameraInfoCb, this, _1 ));
 
-  cmdVelPub = n.advertise<sensor_msgs::JointState >(cmdVelTopicName, 10);
+  //cmdVelPub = n.advertise<sensor_msgs::JointState >(cmdVelTopicName, 10);
 
   if (m_opt_arm == "right")
     m_chain_name = "RArm";
@@ -94,10 +104,10 @@ vs_grasping_pepper::vs_grasping_pepper(ros::NodeHandle &nh): m_cam(),  m_camInfo
   }
 
   // Init display
-  I.resize(480, 640);
+  I.init(480, 640);
   d.init(I);
   vpDisplay::setTitle(I, "ViSP viewer");
-  vpDisplay::display(I);
+  // vpDisplay::display(I);
   //vpDisplay::flush(I);
 
   ROS_INFO("Launch vs_grasping_pepper_node");
@@ -131,6 +141,8 @@ vs_grasping_pepper::vs_grasping_pepper(ros::NodeHandle &nh): m_cam(),  m_camInfo
 
   //Set the stiffness
   robot.setStiffness(m_jointNames_arm, 1.f);
+  // Disable anti-collision arm
+  robot.getProxy()->setExternalCollisionProtectionEnabled(m_chain_name, false);
 
   m_servo_enabled = false;
 
@@ -157,15 +169,8 @@ void vs_grasping_pepper::spin()
 
     vpMouseButton::vpMouseButtonType button;
     bool ret = vpDisplay::getClick(I, button, false);
-    if (m_mode == 1)
-    {
-      if (ret && button == vpMouseButton::button2)
-      {
-        m_cMdh = m_cMh;
-        m_cMdh_isInitialized = true;
-        std::cout << "Desired Pose saved" << std::endl;
-      }
-    }
+
+    // Display useful informations
     if (m_cMdh_isInitialized)
     {
       vpDisplay::displayFrame(I, m_cMdh, m_cam, 0.06, vpColor::red);
@@ -174,28 +179,115 @@ void vs_grasping_pepper::spin()
     if (m_statusPoseHand)
       vpDisplay::displayFrame(I, m_cMh, m_cam, 0.06, vpColor::none);
 
-
-    if (ret && button == vpMouseButton::button1)
+    if (m_state == Learning)
     {
-      m_servo_enabled = !m_servo_enabled;
+      if (m_mode == 1) // Test mode: save a desired pose
+      {
+        if (ret && button == vpMouseButton::button2)
+        {
+          m_cMdh = m_cMh;
+          m_cMdh_isInitialized = true;
+          std::cout << "Desired Pose saved" << std::endl;
+        }
+      }
+
+      if (m_mode == 2) // learn desired pose of the hand wrt the object
+      {
+        vpDisplay::displayText(I, 30, 30, "Press middle button to save the offset", vpColor::green);
+        if (ret && button == vpMouseButton::button2)
+          this->saveOffset();
+      }
     }
 
-    if (m_mode == 2)
+    if (m_state == GoToInitialPosition)
     {
-      vpDisplay::displayText(I, 30, 30, "Press middle button to save the offset", vpColor::green);
+      vpDisplay::displayText(I, 30, 30, "Click to move the robot to the initial position", vpColor::green);
+
+      if (ret && button == vpMouseButton::button1)
+      {
+        if(goTointialPose(robot.getProxy()))
+          m_state = Servoing;
+        ret = false;
+      }
+    }
+
+    if (m_state == Servoing)
+    {
+
       if (ret && button == vpMouseButton::button2)
       {
-        this->saveOffset();
+        m_servo_enabled = !m_servo_enabled;
+        robot.setStiffness(m_jointNames_arm, 1.f);
+        ret = false;
       }
-    }
-    else if (m_mode == 0 || m_mode == 1 )
-    {
-      if (m_servo_enabled)
+
+      if (m_mode == 0 || m_mode == 1 )
       {
-        vpDisplay::displayText(I, 30, 30, "Servo enabled", vpColor::green);
-        this->computeControlLaw();
+        if (m_servo_enabled && !this->computeControlLaw())
+        {
+          vpDisplay::displayText(I, 30, 30, "Servo enabled", vpColor::green);
+        }
+        else
+        {
+          vpDisplay::displayText(I, 30, 30, "Servo disable or finished: middle click to start the VS, left click to grasp", vpColor::green);
+          robot.stop(m_jointNames_arm);
+          //vpColVector q_dot_zero(m_numJoints,0);
+          //publishCmdVel(q_dot_zero);
+        }
+      }
+
+      if (ret && button == vpMouseButton::button1)
+      {
+        robot.stop(m_jointNames_arm);
+        m_state = Grasp;
+        ret = false;
       }
     }
+
+    if (m_state == Grasp)
+    {
+      robot.stopPepperControl();
+      vpDisplay::displayText(I, 30, 30, "Closing", vpColor::green);
+      std::string  hand = "RHand";
+      robot.getProxy()->setStiffnesses(hand, 1.0f);
+      AL::ALValue angle = 0.00;
+      robot.getProxy()->setAngles(hand, angle, 0.2);
+      //robot.getProxy()->closeHand("RHand");
+
+      m_state = OpenHand;
+    }
+
+    if (m_state == OpenHand)
+    {
+      vpDisplay::displayText(I, 30, 30, "Click to open the arm", vpColor::green);
+      if (ret && button == vpMouseButton::button1)
+      {
+        std::string  hand = "RHand";
+        robot.getProxy()->setStiffnesses(hand, 1.0f);
+        AL::ALValue angle = 1.00;
+        robot.getProxy()->setAngles(hand, angle, 0.5);
+        m_state = End;
+        ret = false;
+
+      }
+    }
+
+
+    if (m_state == End)
+    {
+      vpDisplay::displayText(I, 30, 30, "Click to move back the arm", vpColor::green);
+
+
+      if (ret && button == vpMouseButton::button1)
+      {
+        std::cout << "+++++++++++++++++ move back the arm" << std::endl;
+        backTointialPose(robot.getProxy());
+      }
+
+    }
+
+    if (ret && button == vpMouseButton::button3)
+      break;
 
     ret = false;
     ros::spinOnce();
@@ -237,8 +329,9 @@ void vs_grasping_pepper::saveOffset()
 
 
 
-void vs_grasping_pepper::computeControlLaw()
+bool vs_grasping_pepper::computeControlLaw()
 {
+  bool vs_finished = false;
 
   if ( m_cMh_isInitialized && m_cMdh_isInitialized  && m_statusPoseHand && m_statusPoseDesired)
   {
@@ -249,10 +342,11 @@ void vs_grasping_pepper::computeControlLaw()
       first_time = false;
     }
 
-    vpAdaptiveGain lambda(0.9, 0.1, 8);
+    vpAdaptiveGain lambda(0.8, 0.07, 8);
     m_servo_arm.setLambda(lambda);
     m_servo_arm.set_eJe(robot.get_eJe(m_chain_name));
-    m_servo_arm.setCurrentFeature(m_offset.inverse() * m_cMdh.inverse() * m_cMh) ;
+    vpHomogeneousMatrix cdMc = m_offset.inverse() * m_cMdh.inverse() * m_cMh;
+    m_servo_arm.setCurrentFeature(cdMc) ;
     // Create twist matrix from target Frame to Arm end-effector (WristPitch)
     vpVelocityTwistMatrix oVe_LArm(m_eMh);
     m_servo_arm.m_task.set_cVe(oVe_LArm);
@@ -263,26 +357,45 @@ void vs_grasping_pepper::computeControlLaw()
     m_q = robot.getPosition(m_jointNames_arm);
     m_q2_dot  = m_servo_arm.m_task.secondaryTaskJointLimitAvoidance(m_q, m_q_dot, m_jointMin, m_jointMax);
 
-    publishCmdVel(m_q_dot + m_q2_dot);
+    // publishCmdVel(m_q_dot + m_q2_dot);
+    robot.setVelocity(m_jointNames_arm, m_q_dot + m_q2_dot);
+
+    vpTranslationVector t_error_grasp = cdMc.getTranslationVector();
+    vpRotationMatrix R_error_grasp;
+    cdMc.extract(R_error_grasp);
+    vpThetaUVector tu_error_grasp;
+    tu_error_grasp.buildFrom(R_error_grasp);
+    double theta_error_grasp;
+    vpColVector u_error_grasp;
+    tu_error_grasp.extract(theta_error_grasp, u_error_grasp);
+    std::cout << "Error t: " << sqrt(t_error_grasp.sumSquare()) << "< 0.024 " << std::endl <<
+                 "Error r: " << theta_error_grasp << "< " << vpMath::rad(5) << std::endl;
+
+    if ( (sqrt(t_error_grasp.sumSquare()) < 0.024) && (theta_error_grasp < vpMath::rad(6)) )
+    {
+      vs_finished = true;
+      m_state = Grasp;
+      robot.stop(m_jointNames_arm);
+    }
+
   }
   else
-  {
-    vpColVector q_dot_zero(m_numJoints,0);
-    publishCmdVel(q_dot_zero);
-  }
+    robot.stop(m_jointNames_arm);
+
+  return vs_finished;
 
 }
 
-void vs_grasping_pepper::publishCmdVel(const vpColVector &q)
-{
-  for (int i = 0; i < q.size(); i++)
-  {
-    m_q_dot_msg.velocity[i] = q[i];
-  }
+//void vs_grasping_pepper::publishCmdVel(const vpColVector &q)
+//{
+//  for (int i = 0; i < q.size(); i++)
+//  {
+//    m_q_dot_msg.velocity[i] = q[i];
+//  }
 
-  cmdVelPub.publish(m_q_dot_msg);
+//  cmdVelPub.publish(m_q_dot_msg);
 
-}
+//}
 
 
 void vs_grasping_pepper::getDesiredPoseCb(const geometry_msgs::TransformStamped::ConstPtr &desiredPose)
@@ -331,3 +444,6 @@ void vs_grasping_pepper::getCameraInfoCb(const sensor_msgs::CameraInfoConstPtr &
 
   m_camInfoIsInitialized = 1;
 }
+
+
+

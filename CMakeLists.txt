@@ -89,6 +89,7 @@ add_definitions(${VISP_DEFINITIONS})
 # Declare a cpp library
 add_library(vs_grasping_pepper
   include/vs_grasping_pepper.h
+  include/recorded_motion.h
   src/vs_grasping_pepper.cpp
 )
 

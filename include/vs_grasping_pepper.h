@@ -29,7 +29,7 @@ public:
 
   vs_grasping_pepper(ros::NodeHandle &nh);
   ~vs_grasping_pepper();
-  void computeControlLaw();
+  bool computeControlLaw();
   void saveOffset();
   void spin();
   void getActualPoseCb(const geometry_msgs::PoseStampedConstPtr &msg);
@@ -40,6 +40,14 @@ public:
   void getRobotJoints();
   void publishCmdVel(const vpColVector &q);
 
+  typedef enum {
+    Learning,
+    GoToInitialPosition,
+    Servoing,
+    Grasp,
+    OpenHand,
+    End
+  } State_t;
 
 protected:
 
@@ -73,6 +81,7 @@ protected:
   ros::Publisher cmdVelPub;
   int freq;
   int m_mode;
+  State_t m_state;
 
   // Messages
   sensor_msgs::JointState m_q_dot_msg;
