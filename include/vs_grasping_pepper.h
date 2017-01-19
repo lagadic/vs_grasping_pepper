@@ -45,6 +45,8 @@ public:
     GoToInitialPosition,
     Servoing,
     Grasp,
+    RaiseArm,
+    LowerArm,
     OpenHand,
     End
   } State_t;

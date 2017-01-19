@@ -250,11 +250,60 @@ void vs_grasping_pepper::spin()
       vpDisplay::displayText(I, 30, 30, "Closing", vpColor::green);
       std::string  hand = "RHand";
       robot.getProxy()->setStiffnesses(hand, 1.0f);
-      AL::ALValue angle = 0.00;
-      robot.getProxy()->setAngles(hand, angle, 0.2);
+      AL::ALValue angle = 0.0;
+      robot.getProxy()->setAngles(hand, angle, 0.9);
+
+      if (ret && button == vpMouseButton::button1)
+      {
+        m_state = RaiseArm;
+        ret = false;
+      }
+    }
+
+    if (m_state == RaiseArm)
+    {
+      bool static first_time = true;
+      vpDisplay::displayText(I, 30, 30, "Raise the box", vpColor::green);
+      if (first_time)
+      {
+        std::string  joint_name = "RShoulderPitch";
+        robot.getProxy()->setStiffnesses(joint_name, 1.0f);
+        vpColVector p = robot.getPosition(joint_name,true);
+        std::cout << "Actual angle: " <<  p[0] << std::endl;
+        AL::ALValue angle = p[0] - vpMath::rad(10.);
+        std::cout << "Actual angle: " <<  angle << std::endl;
+        robot.getProxy()->setAngles(joint_name, angle, 0.02);
+        first_time = false;
+      }
       //robot.getProxy()->closeHand("RHand");
 
-      m_state = OpenHand;
+      if (ret && button == vpMouseButton::button1)
+      {
+        m_state = OpenHand;
+        ret = false;
+      }
+    }
+
+    if (m_state == LowerArm)
+    {
+      bool static first_time = true;
+
+      vpDisplay::displayText(I, 30, 30, "Raise the box", vpColor::green);
+      if (first_time)
+      {
+        std::string  joint_name = "RShoulderPitch";
+        robot.getProxy()->setStiffnesses(joint_name, 1.0f);
+        vpColVector p = robot.getPosition(joint_name,true);
+        AL::ALValue angle = p[0] + vpMath::rad(3.);
+        robot.getProxy()->setAngles(joint_name, angle, 0.02);
+        first_time = false;
+      }
+
+      if (ret && button == vpMouseButton::button1)
+      {
+        m_state = OpenHand;
+        ret = false;
+      }
     }
 
     if (m_state == OpenHand)
@@ -268,9 +317,10 @@ void vs_grasping_pepper::spin()
         robot.getProxy()->setAngles(hand, angle, 0.5);
         m_state = End;
         ret = false;
-
       }
     }
+
+
 
 
     if (m_state == End)
@@ -342,7 +392,7 @@ bool vs_grasping_pepper::computeControlLaw()
       first_time = false;
     }
 
-    vpAdaptiveGain lambda(0.8, 0.07, 8);
+    vpAdaptiveGain lambda(0.5, 0.05, 3);
     m_servo_arm.setLambda(lambda);
     m_servo_arm.set_eJe(robot.get_eJe(m_chain_name));
     vpHomogeneousMatrix cdMc = m_offset.inverse() * m_cMdh.inverse() * m_cMh;
@@ -371,12 +421,12 @@ bool vs_grasping_pepper::computeControlLaw()
     std::cout << "Error t: " << sqrt(t_error_grasp.sumSquare()) << "< 0.024 " << std::endl <<
                  "Error r: " << theta_error_grasp << "< " << vpMath::rad(5) << std::endl;
 
-    if ( (sqrt(t_error_grasp.sumSquare()) < 0.024) && (theta_error_grasp < vpMath::rad(6)) )
-    {
-      vs_finished = true;
-      m_state = Grasp;
-      robot.stop(m_jointNames_arm);
-    }
+        if ( (sqrt(t_error_grasp.sumSquare()) < 0.014) && (theta_error_grasp < vpMath::rad(10)) )
+        {
+          vs_finished = true;
+          m_state = Grasp;
+          robot.stop(m_jointNames_arm);
+        }
 
   }
   else
