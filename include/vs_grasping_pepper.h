@@ -14,6 +14,11 @@
 #include <visp/vpXmlParserCamera.h>
 #include <visp/vpXmlParserHomogeneousMatrix.h>
 
+#include<visp3/visual_features/vpFeaturePoint.h>
+#include<visp3/visual_features/vpFeatureDepth.h>
+#include <visp/vpFeatureTranslation.h>
+
+
 #include <visp_bridge/3dpose.h>
 #include <visp_bridge/image.h>
 #include <visp_bridge/camera.h>
@@ -29,8 +34,11 @@ public:
 
   vs_grasping_pepper(ros::NodeHandle &nh);
   ~vs_grasping_pepper();
-  bool computeControlLaw();
+  bool computeArmControlLaw();
+  bool computeBaseControlLaw();
+  bool computeBasePBVSControlLaw();
   void saveOffset();
+  void saveDesiredBoxPosePBVS();
   void spin();
   void getActualPoseCb(const geometry_msgs::PoseStampedConstPtr &msg);
   void getDesiredPoseCb(const geometry_msgs::TransformStampedConstPtr &msg);
@@ -42,6 +50,8 @@ public:
 
   typedef enum {
     Learning,
+    GoToInitialPoseBase,
+    ServoBase,
     GoToInitialPosition,
     Servoing,
     Grasp,
@@ -105,6 +115,33 @@ protected:
   vpHomogeneousMatrix m_cMdh;
   vpHomogeneousMatrix m_eMh;
   vpHomogeneousMatrix m_offset;
+
+  // Servo Base
+  bool m_pbvs_base;
+  vpServo m_base_task;
+  vpFeaturePoint m_s;
+  vpFeaturePoint m_sd;
+  vpFeatureDepth m_s_Z;
+  vpFeatureDepth m_s_Zd;
+  vpMatrix m_tJe;
+  vpMatrix m_eJe;
+  vpImagePoint m_head_cog_des;
+  vpImagePoint m_head_cog_cur;
+  vpHomogeneousMatrix m_eMc;
+  double m_Z;
+  double m_Zd;
+  vpColVector m_base_vel;
+
+  // Servo Base PBVS
+  vpFeatureTranslation m_t;
+  vpFeatureThetaU m_tu;
+  vpFeatureTranslation m_s_star_t;
+  vpFeatureThetaU m_s_star_tu;
+  std::vector<std::string> m_jointNames_head;
+  vpColVector m_q_head;
+  vpHomogeneousMatrix m_cMdbox;
+
+
 
   //conditions
   bool m_cMh_isInitialized;

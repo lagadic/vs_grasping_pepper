@@ -494,3 +494,145 @@ bool backTointialPose(AL::ALMotionProxy *motion)
   return true;
 }
 
+bool goToInitialPoseBase(AL::ALMotionProxy *motion)
+{
+  // Choregraphe bezier export in c++.
+  // Add #include <alproxies/almotionproxy.h> at the beginning of this file.
+  std::vector<std::string> names;
+  AL::ALValue times, keys;
+  names.reserve(17);
+  times.arraySetSize(17);
+  keys.arraySetSize(17);
+
+  names.push_back("HeadPitch");
+  times[0].arraySetSize(1);
+  keys[0].arraySetSize(1);
+
+  times[0][0] = 1;
+  keys[0][0] = AL::ALValue::array(-0.33134, AL::ALValue::array(3, -0.333333, 0), AL::ALValue::array(3, 0, 0));
+
+  names.push_back("HeadYaw");
+  times[1].arraySetSize(1);
+  keys[1].arraySetSize(1);
+
+  times[1][0] = 1;
+  keys[1][0] = AL::ALValue::array(0.00460196, AL::ALValue::array(3, -0.333333, 0), AL::ALValue::array(3, 0, 0));
+
+  names.push_back("HipPitch");
+  times[2].arraySetSize(1);
+  keys[2].arraySetSize(1);
+
+  times[2][0] = 1;
+  keys[2][0] = AL::ALValue::array(-0.0260777, AL::ALValue::array(3, -0.333333, 0), AL::ALValue::array(3, 0, 0));
+
+  names.push_back("HipRoll");
+  times[3].arraySetSize(1);
+  keys[3].arraySetSize(1);
+
+  times[3][0] = 1;
+  keys[3][0] = AL::ALValue::array(-0.0107379, AL::ALValue::array(3, -0.333333, 0), AL::ALValue::array(3, 0, 0));
+
+  names.push_back("KneePitch");
+  times[4].arraySetSize(1);
+  keys[4].arraySetSize(1);
+
+  times[4][0] = 1;
+  keys[4][0] = AL::ALValue::array(0.00920391, AL::ALValue::array(3, -0.333333, 0), AL::ALValue::array(3, 0, 0));
+
+  names.push_back("LElbowRoll");
+  times[5].arraySetSize(1);
+  keys[5].arraySetSize(1);
+
+  times[5][0] = 1;
+  keys[5][0] = AL::ALValue::array(-0.527689, AL::ALValue::array(3, -0.333333, 0), AL::ALValue::array(3, 0, 0));
+
+  names.push_back("LElbowYaw");
+  times[6].arraySetSize(1);
+  keys[6].arraySetSize(1);
+
+  times[6][0] = 1;
+  keys[6][0] = AL::ALValue::array(-1.23179, AL::ALValue::array(3, -0.333333, 0), AL::ALValue::array(3, 0, 0));
+
+  names.push_back("LHand");
+  times[7].arraySetSize(1);
+  keys[7].arraySetSize(1);
+
+  times[7][0] = 1;
+  keys[7][0] = AL::ALValue::array(0.600176, AL::ALValue::array(3, -0.333333, 0), AL::ALValue::array(3, 0, 0));
+
+  names.push_back("LShoulderPitch");
+  times[8].arraySetSize(1);
+  keys[8].arraySetSize(1);
+
+  times[8][0] = 1;
+  keys[8][0] = AL::ALValue::array(1.56926, AL::ALValue::array(3, -0.333333, 0), AL::ALValue::array(3, 0, 0));
+
+  names.push_back("LShoulderRoll");
+  times[9].arraySetSize(1);
+  keys[9].arraySetSize(1);
+
+  times[9][0] = 1;
+  keys[9][0] = AL::ALValue::array(0.145728, AL::ALValue::array(3, -0.333333, 0), AL::ALValue::array(3, 0, 0));
+
+  names.push_back("LWristYaw");
+  times[10].arraySetSize(1);
+  keys[10].arraySetSize(1);
+
+  times[10][0] = 1;
+  keys[10][0] = AL::ALValue::array(0.024502, AL::ALValue::array(3, -0.333333, 0), AL::ALValue::array(3, 0, 0));
+
+  names.push_back("RElbowRoll");
+  times[11].arraySetSize(1);
+  keys[11].arraySetSize(1);
+
+  times[11][0] = 1;
+  keys[11][0] = AL::ALValue::array(0.516952, AL::ALValue::array(3, -0.333333, 0), AL::ALValue::array(3, 0, 0));
+
+  names.push_back("RElbowYaw");
+  times[12].arraySetSize(1);
+  keys[12].arraySetSize(1);
+
+  times[12][0] = 1;
+  keys[12][0] = AL::ALValue::array(1.22565, AL::ALValue::array(3, -0.333333, 0), AL::ALValue::array(3, 0, 0));
+
+  names.push_back("RHand");
+  times[13].arraySetSize(1);
+  keys[13].arraySetSize(1);
+
+  times[13][0] = 1;
+  keys[13][0] = AL::ALValue::array(0.604569, AL::ALValue::array(3, -0.333333, 0), AL::ALValue::array(3, 0, 0));
+
+  names.push_back("RShoulderPitch");
+  times[14].arraySetSize(1);
+  keys[14].arraySetSize(1);
+
+  times[14][0] = 1;
+  keys[14][0] = AL::ALValue::array(1.56773, AL::ALValue::array(3, -0.333333, 0), AL::ALValue::array(3, 0, 0));
+
+  names.push_back("RShoulderRoll");
+  times[15].arraySetSize(1);
+  keys[15].arraySetSize(1);
+
+  times[15][0] = 1;
+  keys[15][0] = AL::ALValue::array(-0.145728, AL::ALValue::array(3, -0.333333, 0), AL::ALValue::array(3, 0, 0));
+
+  names.push_back("RWristYaw");
+  times[16].arraySetSize(1);
+  keys[16].arraySetSize(1);
+
+  times[16][0] = 1;
+  keys[16][0] = AL::ALValue::array(-0.0353239, AL::ALValue::array(3, -0.333333, 0), AL::ALValue::array(3, 0, 0));
+
+
+  try
+  {
+    motion->angleInterpolationBezier(names, times, keys);
+  }
+  catch(const std::exception&)
+  {
+    std::cout << "Error during the motion" << std::endl;
+    return false;
+  }
+
+  return true;
+}
