@@ -1,3 +1,5 @@
+#include <visp_naoqi/vpNaoqiGrabber.h>
+#include <visp3/gui/vpDisplayX.h>
 #include <ros/ros.h>
 
 #include <sensor_msgs/JointState.h>
@@ -14,8 +16,8 @@
 #include <visp/vpXmlParserCamera.h>
 #include <visp/vpXmlParserHomogeneousMatrix.h>
 
-#include<visp3/visual_features/vpFeaturePoint.h>
-#include<visp3/visual_features/vpFeatureDepth.h>
+#include <visp3/visual_features/vpFeaturePoint.h>
+#include <visp3/visual_features/vpFeatureDepth.h>
 #include <visp/vpFeatureTranslation.h>
 
 
@@ -27,6 +29,7 @@
 #include <visp_naoqi/vpNaoqiConfig.h>
 
 #include <vpServoArm.h>
+#include <vpPepperFollowPeople.h>
 
 class vs_grasping_pepper
 {
@@ -37,6 +40,7 @@ public:
   bool computeArmControlLaw();
   bool computeBaseControlLaw();
   bool computeBasePBVSControlLaw();
+  //bool computeFollowPersonControlLaw();
   void saveOffset();
   void saveDesiredBoxPosePBVS();
   void spin();
@@ -48,15 +52,22 @@ public:
   void getRobotJoints();
   void publishCmdVel(const vpColVector &q);
 
+  qi::AnyValue fromStringVectorToAnyValue(const std::vector<std::string> &vector);
+  qi::AnyValue fromDoubleVectorToAnyValue(const std::vector<double> &vector);
+
   typedef enum {
     Learning,
+    Init,
     GoToInitialPoseBase,
+    WaitForServoBase,
     ServoBase,
     GoToInitialPosition,
     Servoing,
     Grasp,
     RaiseArm,
     LowerArm,
+    Rotate90,
+    FollowPerson,
     OpenHand,
     End
   } State_t;
@@ -66,6 +77,9 @@ protected:
   // Robot
   vpNaoqiRobot robot;
   std::vector<std::string> m_jointNames_arm;
+  std::vector<std::string> m_bodyJointNames;
+  std::vector<double> m_bodyJointValues;
+
   int m_numJoints;
   std::string m_chain_name;
   vpColVector m_jointMin;
@@ -75,6 +89,7 @@ protected:
 
   //Display
   vpImage<unsigned char> I;
+  vpDisplayX d;
 
   // ROS
   ros::NodeHandle n;
@@ -116,9 +131,9 @@ protected:
   vpHomogeneousMatrix m_eMh;
   vpHomogeneousMatrix m_offset;
 
-  // Servo Base
+  // Servo Base IBVS
   bool m_pbvs_base;
-  vpServo m_base_task;
+  vpServo m_base_fp_task;
   vpFeaturePoint m_s;
   vpFeaturePoint m_sd;
   vpFeatureDepth m_s_Z;
@@ -133,6 +148,7 @@ protected:
   vpColVector m_base_vel;
 
   // Servo Base PBVS
+  vpServo m_base_task;
   vpFeatureTranslation m_t;
   vpFeatureThetaU m_tu;
   vpFeatureTranslation m_s_star_t;
@@ -141,7 +157,12 @@ protected:
   vpColVector m_q_head;
   vpHomogeneousMatrix m_cMdbox;
 
+  // Servo Follow people
+  vpPepperFollowPeople * m_follow_people;
 
+  // New Proxy
+  qi::SessionPtr m_session; //!< Session to connect to Pepper
+  qi::AnyObject m_qiProxy;
 
   //conditions
   bool m_cMh_isInitialized;
