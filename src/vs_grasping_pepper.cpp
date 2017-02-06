@@ -224,7 +224,7 @@ vs_grasping_pepper::vs_grasping_pepper(ros::NodeHandle &nh): m_cam(),  m_camInfo
     m_base_task.setServo(vpServo::EYEINHAND_L_cVe_eJe);
     // Interaction matrix is computed with the desired visual features sd
     m_base_task.setInteractionMatrixType(vpServo::CURRENT);
-    vpAdaptiveGain lambda_base(0.6, 0.3, 3);//(1.2, 1.0, 10); // 2.3, 0.7, 15
+    vpAdaptiveGain lambda_base(0.5, 0.3, 3);//(1.2, 1.0, 10); // 2.3, 0.7, 15
     m_base_task.setLambda(lambda_base);
 
     std::string name_transform_desbox = "cMdbox";
@@ -270,16 +270,16 @@ void vs_grasping_pepper::spin()
     bool ret = vpDisplay::getClick(I, button, false);
 
     // Display useful informations
-    if (m_cMdh_isInitialized) // Box frames
+    if (m_cMdh_isInitialized && m_state < RaiseArm) // Box frames
     {
       vpDisplay::displayFrame(I, m_cMdh, m_cam, 0.06, vpColor::red);
       if (m_state > GoToInitialPosition)
         vpDisplay::displayFrame(I, m_cMdh * m_offset, m_cam, 0.06, vpColor::cyan);
       if (m_state == ServoBase)
         vpDisplay::displayFrame(I, m_cMdbox, m_cam, 0.06, vpColor::cyan);
-
     }
-    if (m_statusPoseHand) // Hand frame
+
+    if (m_statusPoseHand  && m_state < RaiseArm) // Hand frame
       vpDisplay::displayFrame(I, m_cMh, m_cam, 0.06, vpColor::none);
 
     if (m_state == Learning)
@@ -439,8 +439,6 @@ void vs_grasping_pepper::spin()
         {
           vpDisplay::displayText(I, 30, 30, "Servo disable or finished: middle click to start the VS, left click to grasp", vpColor::green);
           robot.stop(m_jointNames_arm);
-          //vpColVector q_dot_zero(m_numJoints,0);
-          //publishCmdVel(q_dot_zero);
         }
       }
 
@@ -450,12 +448,12 @@ void vs_grasping_pepper::spin()
         m_servo_enabled = false;
         m_state = Grasp;
         ret = false;
+        robot.stopPepperControl();
       }
     }
 
     if (m_state == Grasp)
     {
-      robot.stopPepperControl();
       vpDisplay::displayText(I, 30, 30, "Closing", vpColor::green);
       std::string  hand = "RHand";
       robot.getProxy()->setStiffnesses(hand, 1.0f);
@@ -500,22 +498,47 @@ void vs_grasping_pepper::spin()
 
     if (m_state == Rotate90)
     {
-      vpDisplay::displayText(I, 30, 30, "left click to start following a person", vpColor::green);
+      vpDisplay::displayText(I, 30, 30, "left click to move the head", vpColor::green);
 
       robot.getProxy()->moveTo(-0.1,0.0,0.0);
       robot.getProxy()->moveTo(0.0,0.0,vpMath::rad(-150.0));
 
       //      if (ret && button == vpMouseButton::button1)
       //      {
-      m_state = FollowPerson;
+      m_state = MoveHeadToZero;
+      robot.setStiffness(m_jointNames_head, 1.f);
       m_follow_people = new vpPepperFollowPeople(m_ip, 9559, robot);
+      m_follow_people->setDesiredDistance(0.8);
+      m_follow_people->setReverse(false);
       m_servo_enabled = true;
-      vpTime::wait(2000);
+      vpTime::wait(1000);
       //        ret = false;
       //      }
 
     }
 
+    if (m_state == MoveHeadToZero)
+    {
+      vpDisplay::displayText(I, 30, 30, "Left click to follow a person", vpColor::green);
+      bool static first_time = true;
+      if (first_time)
+      {
+        std::vector<float> q;
+        q.resize(2);
+        q[0] = 0.0;
+        q[1] = vpMath::rad(-26.0);
+        robot.getProxy()->setAngles(m_jointNames_head, q, 0.04);
+        first_time = false;
+        robot.startPepperControl();
+      }
+
+      if (ret && button == vpMouseButton::button1)
+      {
+        m_state = FollowPerson;
+        ret = false;
+      }
+
+    }
 
     if (m_state == FollowPerson)
     {
@@ -538,7 +561,7 @@ void vs_grasping_pepper::spin()
       if (ret && button == vpMouseButton::button1)
       {
         m_follow_people->stop();
-        //m_follow_people->~vpPepperFollowPeople();
+        robot.stopPepperControl();
         m_state = OpenHand;
         ret = false;
         //vpTime::wait(2000);
@@ -547,8 +570,6 @@ void vs_grasping_pepper::spin()
       }
 
     }
-
-
 
 
     //    if (m_state == LowerArm)

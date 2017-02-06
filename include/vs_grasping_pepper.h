@@ -67,6 +67,7 @@ public:
     RaiseArm,
     LowerArm,
     Rotate90,
+    MoveHeadToZero,
     FollowPerson,
     OpenHand,
     End
