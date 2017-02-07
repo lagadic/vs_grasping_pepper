@@ -164,6 +164,11 @@ protected:
   // New Proxy
   qi::SessionPtr m_session; //!< Session to connect to Pepper
   qi::AnyObject m_qiProxy;
+  // Proxy
+  AL::ALMemoryProxy * m_mem_proxy;
+  AL::ALSpeechRecognitionProxy * m_asr_proxy;
+  std::vector<std::string> m_vocabulary;
+
 
   //conditions
   bool m_cMh_isInitialized;
@@ -171,5 +176,6 @@ protected:
   bool m_statusPoseDesired_isEnable;
   bool m_servo_enabled;
   bool m_camInfoIsInitialized;
+  bool m_command_give_box;
 
 };

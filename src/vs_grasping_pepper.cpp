@@ -15,7 +15,7 @@
 #include "recorded_motion.h"
 
 
-vs_grasping_pepper::vs_grasping_pepper(ros::NodeHandle &nh): m_cam(),  m_camInfoIsInitialized(false)
+vs_grasping_pepper::vs_grasping_pepper(ros::NodeHandle &nh): m_cam(),  m_camInfoIsInitialized(false), m_asr_proxy()
 {
   // read in config options
   n = nh;
@@ -28,6 +28,7 @@ vs_grasping_pepper::vs_grasping_pepper(ros::NodeHandle &nh): m_cam(),  m_camInfo
   m_statusPoseHand = 0;
   m_statusPoseDesired = 0;
   m_servo_time_init = 0;
+  m_command_give_box = false;
   m_offset.eye();
 
   n.param( "frequency", freq, 20);
@@ -172,12 +173,15 @@ vs_grasping_pepper::vs_grasping_pepper(ros::NodeHandle &nh): m_cam(),  m_camInfo
   robot.getProxy()->setMoveArmsEnabled(false,false);
   robot.getProxy()->setStiffnesses("Body", 1.0);
 
+  m_mem_proxy = new AL::ALMemoryProxy (m_ip, 9559);
+  m_asr_proxy = new AL::ALSpeechRecognitionProxy (m_ip, 9559);
+  m_vocabulary.push_back("give me the box");
+
   // TRY TO FIX THE PROBLEM MOTION
   m_session = qi::makeSession();
   std::string ip_port = "tcp://" + m_ip + ":9559";
   m_session->connect(ip_port);
   m_qiProxy = m_session->service("ALMotion");
-
 
   if (!m_pbvs_base)
   {
@@ -345,7 +349,7 @@ void vs_grasping_pepper::spin()
       if (ret && button == vpMouseButton::button1)
       {
         //robot.getPosition(m_bodyJointNames,m_bodyJointValues,true);
-        m_bodyJointValues = m_qiProxy.call< std::vector<double> >("getAngles", m_bodyJointNames, 1);
+        // m_bodyJointValues = m_qiProxy.call< std::vector<double> >("getAngles", m_bodyJointNames, 1);
         m_state = ServoBase;
         ret = false;
       }
@@ -500,18 +504,18 @@ void vs_grasping_pepper::spin()
     {
       vpDisplay::displayText(I, 30, 30, "left click to move the head", vpColor::green);
 
-      robot.getProxy()->moveTo(-0.1,0.0,0.0);
-      robot.getProxy()->moveTo(0.0,0.0,vpMath::rad(-150.0));
+      //robot.getProxy()->moveTo(-0.1,0.0,0.0);
+      robot.getProxy()->moveTo(-0.1,0.0,vpMath::rad(-150.0));
 
       //      if (ret && button == vpMouseButton::button1)
       //      {
       m_state = MoveHeadToZero;
       robot.setStiffness(m_jointNames_head, 1.f);
-      m_follow_people = new vpPepperFollowPeople(m_ip, 9559, robot);
+      m_follow_people = new vpPepperFollowPeople(m_ip, 9559, robot, m_asr_proxy, m_vocabulary);
       m_follow_people->setDesiredDistance(0.8);
       m_follow_people->setReverse(false);
       m_servo_enabled = true;
-      vpTime::wait(1000);
+      vpTime::wait(600);
       //        ret = false;
       //      }
 
@@ -526,14 +530,14 @@ void vs_grasping_pepper::spin()
         std::vector<float> q;
         q.resize(2);
         q[0] = 0.0;
-        q[1] = vpMath::rad(-26.0);
+        q[1] = vpMath::rad(-19.0);
         robot.getProxy()->setAngles(m_jointNames_head, q, 0.04);
         first_time = false;
-        robot.startPepperControl();
       }
 
       if (ret && button == vpMouseButton::button1)
       {
+        robot.startPepperControl();
         m_state = FollowPerson;
         ret = false;
       }
@@ -558,7 +562,15 @@ void vs_grasping_pepper::spin()
         m_follow_people->stop();
       }
 
-      if (ret && button == vpMouseButton::button1)
+      AL::ALValue result_speech = m_mem_proxy->getData("WordRecognized");
+
+      if ( ((result_speech[0]) == m_vocabulary[0]) && (double (result_speech[1]) > 0.4 )) // Give the box
+      {
+        std::cout << "Recognized: " << result_speech[0] << "with confidence of " << result_speech[1] << std::endl;
+        m_command_give_box = true;
+      }
+
+      if ((ret && button == vpMouseButton::button1) || m_command_give_box )
       {
         m_follow_people->stop();
         robot.stopPepperControl();
@@ -568,7 +580,6 @@ void vs_grasping_pepper::spin()
         std::cout << "Stop Following!: " << std::endl;
 
       }
-
     }
 
 
@@ -597,7 +608,7 @@ void vs_grasping_pepper::spin()
     if (m_state == OpenHand)
     {
       vpDisplay::displayText(I, 30, 30, "Click to open the arm", vpColor::green);
-      if (ret && button == vpMouseButton::button1)
+      if ((ret && button == vpMouseButton::button1) || m_command_give_box)
       {
         std::cout << "Opening Arm!: " << std::endl;
         std::string  hand = "RHand";
@@ -613,12 +624,11 @@ void vs_grasping_pepper::spin()
     {
       vpDisplay::displayText(I, 30, 30, "Click to move back the arm", vpColor::green);
 
-      if (ret && button == vpMouseButton::button1)
+      if (r(ret && button == vpMouseButton::button1) || m_command_give_box)
       {
         std::cout << "Clicked to back the arm: " << std::endl;
         backTointialPose(robot.getProxy());
       }
-
     }
 
     if (ret && button == vpMouseButton::button3)
@@ -630,7 +640,6 @@ void vs_grasping_pepper::spin()
 
     loop_rate.sleep();
   }
-
 
   robot.stop(m_jointNames_arm);
   robot.stopBase();
@@ -704,7 +713,7 @@ bool vs_grasping_pepper::computeArmControlLaw()
       first_time = false;
     }
 
-    vpAdaptiveGain lambda(0.4, 0.07, 3);
+    vpAdaptiveGain lambda(0.6, 0.1, 3); //(0.4, 0.07, 3);
     m_servo_arm.setLambda(lambda);
     m_servo_arm.set_eJe(robot.get_eJe(m_chain_name));
     vpHomogeneousMatrix cdMc = m_offset.inverse() * m_cMdh.inverse() * m_cMh;
@@ -733,7 +742,7 @@ bool vs_grasping_pepper::computeArmControlLaw()
     std::cout << "Error t: " << sqrt(t_error_grasp.sumSquare()) << "< 0.014 " << std::endl <<
                  "Error r: " << theta_error_grasp << "< " << vpMath::rad(10) << std::endl;
 
-    if ( (sqrt(t_error_grasp.sumSquare()) < 0.01) && (theta_error_grasp < vpMath::rad(8)) )
+    if ( (sqrt(t_error_grasp.sumSquare()) < 0.02) && (theta_error_grasp < vpMath::rad(10)) )
     {
       vs_finished = true;
       m_state = Grasp;
