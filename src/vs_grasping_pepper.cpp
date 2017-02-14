@@ -624,7 +624,7 @@ void vs_grasping_pepper::spin()
     {
       vpDisplay::displayText(I, 30, 30, "Click to move back the arm", vpColor::green);
 
-      if (r(ret && button == vpMouseButton::button1) || m_command_give_box)
+      if ((ret && button == vpMouseButton::button1) || m_command_give_box)
       {
         std::cout << "Clicked to back the arm: " << std::endl;
         backTointialPose(robot.getProxy());
