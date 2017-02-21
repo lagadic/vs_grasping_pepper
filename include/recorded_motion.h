@@ -19,30 +19,30 @@ bool goTointialPose(AL::ALMotionProxy *motion)
   times[0].arraySetSize(2);
   keys[0].arraySetSize(2);
 
-  times[0][0] = 1.92;
-  keys[0][0] = AL::ALValue::array(-0.265379, AL::ALValue::array(3, -0.64, 0), AL::ALValue::array(3, 1.69333, 0));
+  times[0][0] = 0.08;
+  keys[0][0] = AL::ALValue::array(-0.265379, AL::ALValue::array(3, -0.0266667, 0), AL::ALValue::array(3, 2.30667, 0));
   times[0][1] = 7;
-  keys[0][1] = AL::ALValue::array(-0.162602, AL::ALValue::array(3, -1.69333, 0), AL::ALValue::array(3, 0, 0));
+  keys[0][1] = AL::ALValue::array(-0.162602, AL::ALValue::array(3, -2.30667, 0), AL::ALValue::array(3, 0, 0));
 
   names.push_back("HeadYaw");
   times[1].arraySetSize(2);
   keys[1].arraySetSize(2);
 
-  times[1][0] = 1.92;
-  keys[1][0] = AL::ALValue::array(-0.250039, AL::ALValue::array(3, -0.64, 0), AL::ALValue::array(3, 1.69333, 0));
+  times[1][0] = 0.08;
+  keys[1][0] = AL::ALValue::array(-0.250039, AL::ALValue::array(3, -0.0266667, 0), AL::ALValue::array(3, 2.30667, 0));
   times[1][1] = 7;
-  keys[1][1] = AL::ALValue::array(-0.564505, AL::ALValue::array(3, -1.69333, 0), AL::ALValue::array(3, 0, 0));
+  keys[1][1] = AL::ALValue::array(-0.564504, AL::ALValue::array(3, -2.30667, 0), AL::ALValue::array(3, 0, 0));
 
   names.push_back("HipPitch");
   times[2].arraySetSize(5);
   keys[2].arraySetSize(5);
 
-  times[2][0] = 1.92;
-  keys[2][0] = AL::ALValue::array(0, AL::ALValue::array(3, -0.64, 0), AL::ALValue::array(3, 0.56, 0));
-  times[2][1] = 3.6;
-  keys[2][1] = AL::ALValue::array(0, AL::ALValue::array(3, -0.56, 0), AL::ALValue::array(3, 0.373333, 0));
+  times[2][0] = 0.08;
+  keys[2][0] = AL::ALValue::array(0, AL::ALValue::array(3, -0.0266667, 0), AL::ALValue::array(3, 0.826667, 0));
+  times[2][1] = 2.56;
+  keys[2][1] = AL::ALValue::array(0, AL::ALValue::array(3, -0.826667, 0), AL::ALValue::array(3, 0.72, 0));
   times[2][2] = 4.72;
-  keys[2][2] = AL::ALValue::array(0, AL::ALValue::array(3, -0.373333, 0), AL::ALValue::array(3, 0.24, 0));
+  keys[2][2] = AL::ALValue::array(0, AL::ALValue::array(3, -0.72, 0), AL::ALValue::array(3, 0.24, 0));
   times[2][3] = 5.44;
   keys[2][3] = AL::ALValue::array(0, AL::ALValue::array(3, -0.24, 0), AL::ALValue::array(3, 0.32, 0));
   times[2][4] = 6.4;
@@ -52,12 +52,12 @@ bool goTointialPose(AL::ALMotionProxy *motion)
   times[3].arraySetSize(5);
   keys[3].arraySetSize(5);
 
-  times[3][0] = 1.92;
-  keys[3][0] = AL::ALValue::array(0, AL::ALValue::array(3, -0.64, 0), AL::ALValue::array(3, 0.56, 0));
-  times[3][1] = 3.6;
-  keys[3][1] = AL::ALValue::array(-0.00153399, AL::ALValue::array(3, -0.56, 0), AL::ALValue::array(3, 0.373333, 0));
+  times[3][0] = 0.08;
+  keys[3][0] = AL::ALValue::array(0, AL::ALValue::array(3, -0.0266667, 0), AL::ALValue::array(3, 0.826667, 0));
+  times[3][1] = 2.56;
+  keys[3][1] = AL::ALValue::array(-0.00153399, AL::ALValue::array(3, -0.826667, 0), AL::ALValue::array(3, 0.72, 0));
   times[3][2] = 4.72;
-  keys[3][2] = AL::ALValue::array(0, AL::ALValue::array(3, -0.373333, 0), AL::ALValue::array(3, 0.24, 0));
+  keys[3][2] = AL::ALValue::array(0, AL::ALValue::array(3, -0.72, 0), AL::ALValue::array(3, 0.24, 0));
   times[3][3] = 5.44;
   keys[3][3] = AL::ALValue::array(0, AL::ALValue::array(3, -0.24, 0), AL::ALValue::array(3, 0.32, 0));
   times[3][4] = 6.4;
@@ -67,12 +67,12 @@ bool goTointialPose(AL::ALMotionProxy *motion)
   times[4].arraySetSize(5);
   keys[4].arraySetSize(5);
 
-  times[4][0] = 1.92;
-  keys[4][0] = AL::ALValue::array(0, AL::ALValue::array(3, -0.64, 0), AL::ALValue::array(3, 0.56, 0));
-  times[4][1] = 3.6;
-  keys[4][1] = AL::ALValue::array(0, AL::ALValue::array(3, -0.56, 0), AL::ALValue::array(3, 0.373333, 0));
+  times[4][0] = 0.08;
+  keys[4][0] = AL::ALValue::array(0, AL::ALValue::array(3, -0.0266667, 0), AL::ALValue::array(3, 0.826667, 0));
+  times[4][1] = 2.56;
+  keys[4][1] = AL::ALValue::array(0, AL::ALValue::array(3, -0.826667, 0), AL::ALValue::array(3, 0.72, 0));
   times[4][2] = 4.72;
-  keys[4][2] = AL::ALValue::array(0, AL::ALValue::array(3, -0.373333, 0), AL::ALValue::array(3, 0.24, 0));
+  keys[4][2] = AL::ALValue::array(0, AL::ALValue::array(3, -0.72, 0), AL::ALValue::array(3, 0.24, 0));
   times[4][3] = 5.44;
   keys[4][3] = AL::ALValue::array(0, AL::ALValue::array(3, -0.24, 0), AL::ALValue::array(3, 0.32, 0));
   times[4][4] = 6.4;
@@ -82,27 +82,27 @@ bool goTointialPose(AL::ALMotionProxy *motion)
   times[5].arraySetSize(5);
   keys[5].arraySetSize(5);
 
-  times[5][0] = 1.92;
-  keys[5][0] = AL::ALValue::array(-0.524622, AL::ALValue::array(3, -0.64, 0), AL::ALValue::array(3, 0.56, 0));
-  times[5][1] = 3.6;
-  keys[5][1] = AL::ALValue::array(-0.524621, AL::ALValue::array(3, -0.56, 0), AL::ALValue::array(3, 0.373333, 0));
+  times[5][0] = 0.08;
+  keys[5][0] = AL::ALValue::array(-0.524622, AL::ALValue::array(3, -0.0266667, 0), AL::ALValue::array(3, 0.826667, 0));
+  times[5][1] = 2.56;
+  keys[5][1] = AL::ALValue::array(-0.524622, AL::ALValue::array(3, -0.826667, 0), AL::ALValue::array(3, 0.72, 0));
   times[5][2] = 4.72;
-  keys[5][2] = AL::ALValue::array(-0.524621, AL::ALValue::array(3, -0.373333, 0), AL::ALValue::array(3, 0.24, 0));
+  keys[5][2] = AL::ALValue::array(-0.524622, AL::ALValue::array(3, -0.72, 0), AL::ALValue::array(3, 0.24, 0));
   times[5][3] = 5.44;
-  keys[5][3] = AL::ALValue::array(-0.524621, AL::ALValue::array(3, -0.24, 0), AL::ALValue::array(3, 0.32, 0));
+  keys[5][3] = AL::ALValue::array(-0.524622, AL::ALValue::array(3, -0.24, 0), AL::ALValue::array(3, 0.32, 0));
   times[5][4] = 6.4;
-  keys[5][4] = AL::ALValue::array(-0.524621, AL::ALValue::array(3, -0.32, 0), AL::ALValue::array(3, 0, 0));
+  keys[5][4] = AL::ALValue::array(-0.524622, AL::ALValue::array(3, -0.32, 0), AL::ALValue::array(3, 0, 0));
 
   names.push_back("LElbowYaw");
   times[6].arraySetSize(5);
   keys[6].arraySetSize(5);
 
-  times[6][0] = 1.92;
-  keys[6][0] = AL::ALValue::array(-1.22872, AL::ALValue::array(3, -0.64, 0), AL::ALValue::array(3, 0.56, 0));
-  times[6][1] = 3.6;
-  keys[6][1] = AL::ALValue::array(-1.22872, AL::ALValue::array(3, -0.56, 0), AL::ALValue::array(3, 0.373333, 0));
+  times[6][0] = 0.08;
+  keys[6][0] = AL::ALValue::array(-1.22872, AL::ALValue::array(3, -0.0266667, 0), AL::ALValue::array(3, 0.826667, 0));
+  times[6][1] = 2.56;
+  keys[6][1] = AL::ALValue::array(-1.22872, AL::ALValue::array(3, -0.826667, 0), AL::ALValue::array(3, 0.72, 0));
   times[6][2] = 4.72;
-  keys[6][2] = AL::ALValue::array(-1.22872, AL::ALValue::array(3, -0.373333, 0), AL::ALValue::array(3, 0.24, 0));
+  keys[6][2] = AL::ALValue::array(-1.22872, AL::ALValue::array(3, -0.72, 0), AL::ALValue::array(3, 0.24, 0));
   times[6][3] = 5.44;
   keys[6][3] = AL::ALValue::array(-1.22872, AL::ALValue::array(3, -0.24, 0), AL::ALValue::array(3, 0.32, 0));
   times[6][4] = 6.4;
@@ -112,12 +112,12 @@ bool goTointialPose(AL::ALMotionProxy *motion)
   times[7].arraySetSize(5);
   keys[7].arraySetSize(5);
 
-  times[7][0] = 1.92;
-  keys[7][0] = AL::ALValue::array(0.598418, AL::ALValue::array(3, -0.64, 0), AL::ALValue::array(3, 0.56, 0));
-  times[7][1] = 3.6;
-  keys[7][1] = AL::ALValue::array(0.598418, AL::ALValue::array(3, -0.56, 0), AL::ALValue::array(3, 0.373333, 0));
+  times[7][0] = 0.08;
+  keys[7][0] = AL::ALValue::array(0.598418, AL::ALValue::array(3, -0.0266667, 0), AL::ALValue::array(3, 0.826667, 0));
+  times[7][1] = 2.56;
+  keys[7][1] = AL::ALValue::array(0.598418, AL::ALValue::array(3, -0.826667, 0), AL::ALValue::array(3, 0.72, 0));
   times[7][2] = 4.72;
-  keys[7][2] = AL::ALValue::array(0.598418, AL::ALValue::array(3, -0.373333, 0), AL::ALValue::array(3, 0.24, 0));
+  keys[7][2] = AL::ALValue::array(0.598418, AL::ALValue::array(3, -0.72, 0), AL::ALValue::array(3, 0.24, 0));
   times[7][3] = 5.44;
   keys[7][3] = AL::ALValue::array(0.598418, AL::ALValue::array(3, -0.24, 0), AL::ALValue::array(3, 0.32, 0));
   times[7][4] = 6.4;
@@ -127,12 +127,12 @@ bool goTointialPose(AL::ALMotionProxy *motion)
   times[8].arraySetSize(5);
   keys[8].arraySetSize(5);
 
-  times[8][0] = 1.92;
-  keys[8][0] = AL::ALValue::array(1.56619, AL::ALValue::array(3, -0.64, 0), AL::ALValue::array(3, 0.56, 0));
-  times[8][1] = 3.6;
-  keys[8][1] = AL::ALValue::array(1.56619, AL::ALValue::array(3, -0.56, 0), AL::ALValue::array(3, 0.373333, 0));
+  times[8][0] = 0.08;
+  keys[8][0] = AL::ALValue::array(1.56619, AL::ALValue::array(3, -0.0266667, 0), AL::ALValue::array(3, 0.826667, 0));
+  times[8][1] = 2.56;
+  keys[8][1] = AL::ALValue::array(1.56619, AL::ALValue::array(3, -0.826667, 0), AL::ALValue::array(3, 0.72, 0));
   times[8][2] = 4.72;
-  keys[8][2] = AL::ALValue::array(1.56619, AL::ALValue::array(3, -0.373333, 0), AL::ALValue::array(3, 0.24, 0));
+  keys[8][2] = AL::ALValue::array(1.56619, AL::ALValue::array(3, -0.72, 0), AL::ALValue::array(3, 0.24, 0));
   times[8][3] = 5.44;
   keys[8][3] = AL::ALValue::array(1.56619, AL::ALValue::array(3, -0.24, 0), AL::ALValue::array(3, 0.32, 0));
   times[8][4] = 6.4;
@@ -142,12 +142,12 @@ bool goTointialPose(AL::ALMotionProxy *motion)
   times[9].arraySetSize(5);
   keys[9].arraySetSize(5);
 
-  times[9][0] = 1.92;
-  keys[9][0] = AL::ALValue::array(0.138058, AL::ALValue::array(3, -0.64, 0), AL::ALValue::array(3, 0.56, 0));
-  times[9][1] = 3.6;
-  keys[9][1] = AL::ALValue::array(0.138058, AL::ALValue::array(3, -0.56, 0), AL::ALValue::array(3, 0.373333, 0));
+  times[9][0] = 0.08;
+  keys[9][0] = AL::ALValue::array(0.138058, AL::ALValue::array(3, -0.0266667, 0), AL::ALValue::array(3, 0.826667, 0));
+  times[9][1] = 2.56;
+  keys[9][1] = AL::ALValue::array(0.138058, AL::ALValue::array(3, -0.826667, 0), AL::ALValue::array(3, 0.72, 0));
   times[9][2] = 4.72;
-  keys[9][2] = AL::ALValue::array(0.138058, AL::ALValue::array(3, -0.373333, 0), AL::ALValue::array(3, 0.24, 0));
+  keys[9][2] = AL::ALValue::array(0.138058, AL::ALValue::array(3, -0.72, 0), AL::ALValue::array(3, 0.24, 0));
   times[9][3] = 5.44;
   keys[9][3] = AL::ALValue::array(0.138058, AL::ALValue::array(3, -0.24, 0), AL::ALValue::array(3, 0.32, 0));
   times[9][4] = 6.4;
@@ -157,12 +157,12 @@ bool goTointialPose(AL::ALMotionProxy *motion)
   times[10].arraySetSize(5);
   keys[10].arraySetSize(5);
 
-  times[10][0] = 1.92;
-  keys[10][0] = AL::ALValue::array(0.0352399, AL::ALValue::array(3, -0.64, 0), AL::ALValue::array(3, 0.56, 0));
-  times[10][1] = 3.6;
-  keys[10][1] = AL::ALValue::array(0.024502, AL::ALValue::array(3, -0.56, 0), AL::ALValue::array(3, 0.373333, 0));
+  times[10][0] = 0.08;
+  keys[10][0] = AL::ALValue::array(0.0352399, AL::ALValue::array(3, -0.0266667, 0), AL::ALValue::array(3, 0.826667, 0));
+  times[10][1] = 2.56;
+  keys[10][1] = AL::ALValue::array(0.024502, AL::ALValue::array(3, -0.826667, 0), AL::ALValue::array(3, 0.72, 0));
   times[10][2] = 4.72;
-  keys[10][2] = AL::ALValue::array(0.024502, AL::ALValue::array(3, -0.373333, 0), AL::ALValue::array(3, 0.24, 0));
+  keys[10][2] = AL::ALValue::array(0.024502, AL::ALValue::array(3, -0.72, 0), AL::ALValue::array(3, 0.24, 0));
   times[10][3] = 5.44;
   keys[10][3] = AL::ALValue::array(0.024502, AL::ALValue::array(3, -0.24, 0), AL::ALValue::array(3, 0.32, 0));
   times[10][4] = 6.4;
@@ -172,42 +172,42 @@ bool goTointialPose(AL::ALMotionProxy *motion)
   times[11].arraySetSize(5);
   keys[11].arraySetSize(5);
 
-  times[11][0] = 1.92;
-  keys[11][0] = AL::ALValue::array(0.139592, AL::ALValue::array(3, -0.64, 0), AL::ALValue::array(3, 0.56, 0));
-  times[11][1] = 3.6;
-  keys[11][1] = AL::ALValue::array(0.51235, AL::ALValue::array(3, -0.56, 0), AL::ALValue::array(3, 0.373333, 0));
+  times[11][0] = 0.08;
+  keys[11][0] = AL::ALValue::array(0.139592, AL::ALValue::array(3, -0.0266667, 0), AL::ALValue::array(3, 0.826667, 0));
+  times[11][1] = 2.56;
+  keys[11][1] = AL::ALValue::array(0.51235, AL::ALValue::array(3, -0.826667, 0), AL::ALValue::array(3, 0.72, 0));
   times[11][2] = 4.72;
-  keys[11][2] = AL::ALValue::array(0.147262, AL::ALValue::array(3, -0.373333, 0), AL::ALValue::array(3, 0.24, 0));
+  keys[11][2] = AL::ALValue::array(0.147262, AL::ALValue::array(3, -0.72, 0), AL::ALValue::array(3, 0.24, 0));
   times[11][3] = 5.44;
-  keys[11][3] = AL::ALValue::array(0.866699, AL::ALValue::array(3, -0.24, -0.0310632), AL::ALValue::array(3, 0.32, 0.0414175));
+  keys[11][3] = AL::ALValue::array(0.866699, AL::ALValue::array(3, -0.24, -0.0310625), AL::ALValue::array(3, 0.32, 0.0414167));
   times[11][4] = 6.4;
-  keys[11][4] = AL::ALValue::array(0.908117, AL::ALValue::array(3, -0.32, 0), AL::ALValue::array(3, 0, 0));
+  keys[11][4] = AL::ALValue::array(0.908116, AL::ALValue::array(3, -0.32, 0), AL::ALValue::array(3, 0, 0));
 
   names.push_back("RElbowYaw");
   times[12].arraySetSize(5);
   keys[12].arraySetSize(5);
 
-  times[12][0] = 1.92;
-  keys[12][0] = AL::ALValue::array(0.383496, AL::ALValue::array(3, -0.64, 0), AL::ALValue::array(3, 0.56, 0));
-  times[12][1] = 3.6;
-  keys[12][1] = AL::ALValue::array(1.22718, AL::ALValue::array(3, -0.56, -0.26998), AL::ALValue::array(3, 0.373333, 0.179987));
+  times[12][0] = 0.08;
+  keys[12][0] = AL::ALValue::array(0.383496, AL::ALValue::array(3, -0.0266667, 0), AL::ALValue::array(3, 0.826667, 0));
+  times[12][1] = 2.56;
+  keys[12][1] = AL::ALValue::array(1.22718, AL::ALValue::array(3, -0.826667, -0.2405), AL::ALValue::array(3, 0.72, 0.209468));
   times[12][2] = 4.72;
-  keys[12][2] = AL::ALValue::array(1.7334, AL::ALValue::array(3, -0.373333, 0), AL::ALValue::array(3, 0.24, 0));
+  keys[12][2] = AL::ALValue::array(1.7334, AL::ALValue::array(3, -0.72, 0), AL::ALValue::array(3, 0.24, 0));
   times[12][3] = 5.44;
-  keys[12][3] = AL::ALValue::array(1.61375, AL::ALValue::array(3, -0.24, 0.11965), AL::ALValue::array(3, 0.32, -0.159534));
+  keys[12][3] = AL::ALValue::array(1.61375, AL::ALValue::array(3, -0.24, 0.119651), AL::ALValue::array(3, 0.32, -0.159535));
   times[12][4] = 6.4;
-  keys[12][4] = AL::ALValue::array(0.319068, AL::ALValue::array(3, -0.32, 0), AL::ALValue::array(3, 0, 0));
+  keys[12][4] = AL::ALValue::array(0.319067, AL::ALValue::array(3, -0.32, 0), AL::ALValue::array(3, 0, 0));
 
   names.push_back("RHand");
   times[13].arraySetSize(5);
   keys[13].arraySetSize(5);
 
-  times[13][0] = 1.92;
-  keys[13][0] = AL::ALValue::array(0.622144, AL::ALValue::array(3, -0.64, 0), AL::ALValue::array(3, 0.56, 0));
-  times[13][1] = 3.6;
-  keys[13][1] = AL::ALValue::array(0.587873, AL::ALValue::array(3, -0.56, 0.0105448), AL::ALValue::array(3, 0.373333, -0.00702985));
+  times[13][0] = 0.08;
+  keys[13][0] = AL::ALValue::array(0.622144, AL::ALValue::array(3, -0.0266667, 0), AL::ALValue::array(3, 0.826667, 0));
+  times[13][1] = 2.56;
+  keys[13][1] = AL::ALValue::array(0.587873, AL::ALValue::array(3, -0.826667, 0.00939336), AL::ALValue::array(3, 0.72, -0.00818131));
   times[13][2] = 4.72;
-  keys[13][2] = AL::ALValue::array(0.56942, AL::ALValue::array(3, -0.373333, 0), AL::ALValue::array(3, 0.24, 0));
+  keys[13][2] = AL::ALValue::array(0.56942, AL::ALValue::array(3, -0.72, 0), AL::ALValue::array(3, 0.24, 0));
   times[13][3] = 5.44;
   keys[13][3] = AL::ALValue::array(0.884886, AL::ALValue::array(3, -0.24, 0), AL::ALValue::array(3, 0.32, 0));
   times[13][4] = 6.4;
@@ -217,14 +217,14 @@ bool goTointialPose(AL::ALMotionProxy *motion)
   times[14].arraySetSize(5);
   keys[14].arraySetSize(5);
 
-  times[14][0] = 1.92;
-  keys[14][0] = AL::ALValue::array(1.44041, AL::ALValue::array(3, -0.64, 0), AL::ALValue::array(3, 0.56, 0));
-  times[14][1] = 3.6;
-  keys[14][1] = AL::ALValue::array(1.55852, AL::ALValue::array(3, -0.56, 0), AL::ALValue::array(3, 0.373333, 0));
+  times[14][0] = 0.08;
+  keys[14][0] = AL::ALValue::array(1.44041, AL::ALValue::array(3, -0.0266667, 0), AL::ALValue::array(3, 0.826667, 0));
+  times[14][1] = 2.56;
+  keys[14][1] = AL::ALValue::array(1.55852, AL::ALValue::array(3, -0.826667, 0), AL::ALValue::array(3, 0.72, 0));
   times[14][2] = 4.72;
-  keys[14][2] = AL::ALValue::array(1.51557, AL::ALValue::array(3, -0.373333, 0.0429511), AL::ALValue::array(3, 0.24, -0.0276114));
+  keys[14][2] = AL::ALValue::array(1.51557, AL::ALValue::array(3, -0.72, 0.0429508), AL::ALValue::array(3, 0.24, -0.0143169));
   times[14][3] = 5.44;
-  keys[14][3] = AL::ALValue::array(0.237767, AL::ALValue::array(3, -0.24, 0.121951), AL::ALValue::array(3, 0.32, -0.162602));
+  keys[14][3] = AL::ALValue::array(0.237766, AL::ALValue::array(3, -0.24, 0.121951), AL::ALValue::array(3, 0.32, -0.162601));
   times[14][4] = 6.4;
   keys[14][4] = AL::ALValue::array(0.075165, AL::ALValue::array(3, -0.32, 0), AL::ALValue::array(3, 0, 0));
 
@@ -232,14 +232,14 @@ bool goTointialPose(AL::ALMotionProxy *motion)
   times[15].arraySetSize(5);
   keys[15].arraySetSize(5);
 
-  times[15][0] = 1.92;
-  keys[15][0] = AL::ALValue::array(-0.0905049, AL::ALValue::array(3, -0.64, 0), AL::ALValue::array(3, 0.56, 0));
-  times[15][1] = 3.6;
-  keys[15][1] = AL::ALValue::array(-0.162602, AL::ALValue::array(3, -0.56, 0.072097), AL::ALValue::array(3, 0.373333, -0.0480647));
+  times[15][0] = 0.08;
+  keys[15][0] = AL::ALValue::array(-0.0905049, AL::ALValue::array(3, -0.0266667, 0), AL::ALValue::array(3, 0.826667, 0));
+  times[15][1] = 2.56;
+  keys[15][1] = AL::ALValue::array(-0.162602, AL::ALValue::array(3, -0.826667, 0.0720971), AL::ALValue::array(3, 0.72, -0.0627943));
   times[15][2] = 4.72;
-  keys[15][2] = AL::ALValue::array(-1.12134, AL::ALValue::array(3, -0.373333, 0), AL::ALValue::array(3, 0.24, 0));
+  keys[15][2] = AL::ALValue::array(-1.12134, AL::ALValue::array(3, -0.72, 0), AL::ALValue::array(3, 0.24, 0));
   times[15][3] = 5.44;
-  keys[15][3] = AL::ALValue::array(-1.1106, AL::ALValue::array(3, -0.24, -0.0107379), AL::ALValue::array(3, 0.32, 0.0143172));
+  keys[15][3] = AL::ALValue::array(-1.1106, AL::ALValue::array(3, -0.24, -0.010739), AL::ALValue::array(3, 0.32, 0.0143187));
   times[15][4] = 6.4;
   keys[15][4] = AL::ALValue::array(-0.785398, AL::ALValue::array(3, -0.32, 0), AL::ALValue::array(3, 0, 0));
 
@@ -247,18 +247,16 @@ bool goTointialPose(AL::ALMotionProxy *motion)
   times[16].arraySetSize(5);
   keys[16].arraySetSize(5);
 
-  times[16][0] = 1.92;
-  keys[16][0] = AL::ALValue::array(0.961776, AL::ALValue::array(3, -0.64, 0), AL::ALValue::array(3, 0.56, 0));
-  times[16][1] = 3.6;
-  keys[16][1] = AL::ALValue::array(-0.024586, AL::ALValue::array(3, -0.56, 0), AL::ALValue::array(3, 0.373333, 0));
+  times[16][0] = 0.08;
+  keys[16][0] = AL::ALValue::array(0.961776, AL::ALValue::array(3, -0.0266667, 0), AL::ALValue::array(3, 0.826667, 0));
+  times[16][1] = 2.56;
+  keys[16][1] = AL::ALValue::array(-0.0245859, AL::ALValue::array(3, -0.826667, 0), AL::ALValue::array(3, 0.72, 0));
   times[16][2] = 4.72;
-  keys[16][2] = AL::ALValue::array(0.400332, AL::ALValue::array(3, -0.373333, -0.01909), AL::ALValue::array(3, 0.24, 0.0122721));
+  keys[16][2] = AL::ALValue::array(0.400331, AL::ALValue::array(3, -0.72, -0.0368194), AL::ALValue::array(3, 0.24, 0.0122731));
   times[16][3] = 5.44;
-  keys[16][3] = AL::ALValue::array(0.412604, AL::ALValue::array(3, -0.24, -0.0122721), AL::ALValue::array(3, 0.32, 0.0163629));
+  keys[16][3] = AL::ALValue::array(0.412605, AL::ALValue::array(3, -0.24, -0.0122731), AL::ALValue::array(3, 0.32, 0.0163642));
   times[16][4] = 6.4;
   keys[16][4] = AL::ALValue::array(1.29465, AL::ALValue::array(3, -0.32, 0), AL::ALValue::array(3, 0, 0));
-
-
 
   try
   {
@@ -533,6 +531,148 @@ bool goToInitialPoseBase(AL::ALMotionProxy *motion)
   times[0].arraySetSize(1);
   keys[0].arraySetSize(1);
 
+  times[0][0] = 1.76;
+  keys[0][0] = AL::ALValue::array(-0.360486, AL::ALValue::array(3, -0.586667, 0), AL::ALValue::array(3, 0, 0));
+
+  names.push_back("HeadYaw");
+  times[1].arraySetSize(1);
+  keys[1].arraySetSize(1);
+
+  times[1][0] = 1.76;
+  keys[1][0] = AL::ALValue::array(-0.250039, AL::ALValue::array(3, -0.586667, 0), AL::ALValue::array(3, 0, 0));
+
+  names.push_back("HipPitch");
+  times[2].arraySetSize(1);
+  keys[2].arraySetSize(1);
+
+  times[2][0] = 1.76;
+  keys[2][0] = AL::ALValue::array(0.00920391, AL::ALValue::array(3, -0.586667, 0), AL::ALValue::array(3, 0, 0));
+
+  names.push_back("HipRoll");
+  times[3].arraySetSize(1);
+  keys[3].arraySetSize(1);
+
+  times[3][0] = 1.76;
+  keys[3][0] = AL::ALValue::array(0.00460196, AL::ALValue::array(3, -0.586667, 0), AL::ALValue::array(3, 0, 0));
+
+  names.push_back("KneePitch");
+  times[4].arraySetSize(1);
+  keys[4].arraySetSize(1);
+
+  times[4][0] = 1.76;
+  keys[4][0] = AL::ALValue::array(0.0184078, AL::ALValue::array(3, -0.586667, 0), AL::ALValue::array(3, 0, 0));
+
+  names.push_back("LElbowRoll");
+  times[5].arraySetSize(1);
+  keys[5].arraySetSize(1);
+
+  times[5][0] = 1.76;
+  keys[5][0] = AL::ALValue::array(-0.530757, AL::ALValue::array(3, -0.586667, 0), AL::ALValue::array(3, 0, 0));
+
+  names.push_back("LElbowYaw");
+  times[6].arraySetSize(1);
+  keys[6].arraySetSize(1);
+
+  times[6][0] = 1.76;
+  keys[6][0] = AL::ALValue::array(-1.23485, AL::ALValue::array(3, -0.586667, 0), AL::ALValue::array(3, 0, 0));
+
+  names.push_back("LHand");
+  times[7].arraySetSize(1);
+  keys[7].arraySetSize(1);
+
+  times[7][0] = 1.76;
+  keys[7][0] = AL::ALValue::array(0.588752, AL::ALValue::array(3, -0.586667, 0), AL::ALValue::array(3, 0, 0));
+
+  names.push_back("LShoulderPitch");
+  times[8].arraySetSize(1);
+  keys[8].arraySetSize(1);
+
+  times[8][0] = 1.76;
+  keys[8][0] = AL::ALValue::array(1.56619, AL::ALValue::array(3, -0.586667, 0), AL::ALValue::array(3, 0, 0));
+
+  names.push_back("LShoulderRoll");
+  times[9].arraySetSize(1);
+  keys[9].arraySetSize(1);
+
+  times[9][0] = 1.76;
+  keys[9][0] = AL::ALValue::array(0.141126, AL::ALValue::array(3, -0.586667, 0), AL::ALValue::array(3, 0, 0));
+
+  names.push_back("LWristYaw");
+  times[10].arraySetSize(1);
+  keys[10].arraySetSize(1);
+
+  times[10][0] = 1.76;
+  keys[10][0] = AL::ALValue::array(0.05825, AL::ALValue::array(3, -0.586667, 0), AL::ALValue::array(3, 0, 0));
+
+  names.push_back("RElbowRoll");
+  times[11].arraySetSize(1);
+  keys[11].arraySetSize(1);
+
+  times[11][0] = 1.76;
+  keys[11][0] = AL::ALValue::array(0.0168738, AL::ALValue::array(3, -0.586667, 0), AL::ALValue::array(3, 0, 0));
+
+  names.push_back("RElbowYaw");
+  times[12].arraySetSize(1);
+  keys[12].arraySetSize(1);
+
+  times[12][0] = 1.76;
+  keys[12][0] = AL::ALValue::array(0.483204, AL::ALValue::array(3, -0.586667, 0), AL::ALValue::array(3, 0, 0));
+
+  names.push_back("RHand");
+  times[13].arraySetSize(1);
+  keys[13].arraySetSize(1);
+
+  times[13][0] = 1.76;
+  keys[13][0] = AL::ALValue::array(0.601054, AL::ALValue::array(3, -0.586667, 0), AL::ALValue::array(3, 0, 0));
+
+  names.push_back("RShoulderPitch");
+  times[14].arraySetSize(1);
+  keys[14].arraySetSize(1);
+
+  times[14][0] = 1.76;
+  keys[14][0] = AL::ALValue::array(1.40359, AL::ALValue::array(3, -0.586667, 0), AL::ALValue::array(3, 0, 0));
+
+  names.push_back("RShoulderRoll");
+  times[15].arraySetSize(1);
+  keys[15].arraySetSize(1);
+
+  times[15][0] = 1.76;
+  keys[15][0] = AL::ALValue::array(-0.0153399, AL::ALValue::array(3, -0.586667, 0), AL::ALValue::array(3, 0, 0));
+
+  names.push_back("RWristYaw");
+  times[16].arraySetSize(1);
+  keys[16].arraySetSize(1);
+
+  times[16][0] = 1.76;
+  keys[16][0] = AL::ALValue::array(0.753152, AL::ALValue::array(3, -0.586667, 0), AL::ALValue::array(3, 0, 0));
+
+  try
+  {
+    motion->angleInterpolationBezier(names, times, keys);
+  }
+  catch(const std::exception&)
+  {
+    std::cout << "Error during the motion" << std::endl;
+    return false;
+  }
+
+  return true;
+}
+
+bool goToInitialPBVSPoseBase(AL::ALMotionProxy *motion)
+{
+  // Choregraphe bezier export in c++.
+  // Add #include <alproxies/almotionproxy.h> at the beginning of this file.
+  std::vector<std::string> names;
+  AL::ALValue times, keys;
+  names.reserve(17);
+  times.arraySetSize(17);
+  keys.arraySetSize(17);
+
+  names.push_back("HeadPitch");
+  times[0].arraySetSize(1);
+  keys[0].arraySetSize(1);
+
   times[0][0] = 1.52;
   keys[0][0] = AL::ALValue::array(-0.265379, AL::ALValue::array(3, -0.506667, 0), AL::ALValue::array(3, 0, 0));
 
@@ -647,7 +787,6 @@ bool goToInitialPoseBase(AL::ALMotionProxy *motion)
 
   times[16][0] = 1.52;
   keys[16][0] = AL::ALValue::array(0.961776, AL::ALValue::array(3, -0.506667, 0), AL::ALValue::array(3, 0, 0));
-
   try
   {
     motion->angleInterpolationBezier(names, times, keys);
@@ -660,3 +799,4 @@ bool goToInitialPoseBase(AL::ALMotionProxy *motion)
 
   return true;
 }
+

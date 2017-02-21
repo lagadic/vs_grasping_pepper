@@ -8,6 +8,7 @@
 #include <sensor_msgs/CameraInfo.h>
 #include <geometry_msgs/PoseStamped.h>
 #include <geometry_msgs/TransformStamped.h>
+#include <geometry_msgs/Polygon.h>
 #include <std_msgs/Int8.h>
 
 #include <visp3/core/vpHomogeneousMatrix.h>
@@ -37,18 +38,22 @@ public:
 
   vs_grasping_pepper(ros::NodeHandle &nh);
   ~vs_grasping_pepper();
+  void initializationVS();
   bool computeArmControlLaw();
   bool computeBaseControlLaw();
   bool computeBasePBVSControlLaw();
+  bool computeBaseTLDControlLaw();
   //bool computeFollowPersonControlLaw();
   void saveOffset();
   void saveDesiredBoxPosePBVS();
   void spin();
   void getActualPoseCb(const geometry_msgs::PoseStampedConstPtr &msg);
+  void getCameraInfoCb(const sensor_msgs::CameraInfoConstPtr &msg);
   void getDesiredPoseCb(const geometry_msgs::TransformStampedConstPtr &msg);
+  void getObjectPolygonCb(const geometry_msgs::Polygon::ConstPtr &msg);
   void getStatusPoseHandCb(const std_msgs::Int8::ConstPtr &status);
   void getStatusPoseDesiredCb(const std_msgs::Int8::ConstPtr &status);
-  void getCameraInfoCb(const sensor_msgs::CameraInfoConstPtr &msg);
+  void getStatusObjectPolygonCb(const std_msgs::Int8::ConstPtr  &status);
   void getRobotJoints();
   void publishCmdVel(const vpColVector &q);
 
@@ -60,6 +65,8 @@ public:
     Init,
     GoToInitialPoseBase,
     WaitForServoBase,
+    AnswerRequest,
+    ServoBaseTLD,
     ServoBase,
     GoToInitialPosition,
     Servoing,
@@ -94,11 +101,13 @@ protected:
 
   // ROS
   ros::NodeHandle n;
+  std::string cmdVelTopicName;
   std::string actualPoseTopicName;
   std::string desiredPoseTopicName;
   std::string statusPoseHandTopicName;
   std::string statusPoseDesiredTopicName;
-  std::string cmdVelTopicName;
+  std::string m_statusObjectPolygonTopicName;
+  std::string m_objectPolygonTopicName;
   std::string m_opt_arm;
   std::string m_cameraInfoName;
   ros::Subscriber actualPoseSub;
@@ -106,6 +115,9 @@ protected:
   ros::Subscriber statusPoseHandSub;
   ros::Subscriber statusPoseDesiredSub;
   ros::Subscriber m_cameraInfoSub;
+  ros::Subscriber m_ObjectPolygonSub;
+  ros::Subscriber m_statusObjectPolygonSub;
+
   ros::Publisher cmdVelPub;
   int freq;
   int m_mode;
@@ -132,23 +144,8 @@ protected:
   vpHomogeneousMatrix m_eMh;
   vpHomogeneousMatrix m_offset;
 
-  // Servo Base IBVS
-  bool m_pbvs_base;
-  vpServo m_base_fp_task;
-  vpFeaturePoint m_s;
-  vpFeaturePoint m_sd;
-  vpFeatureDepth m_s_Z;
-  vpFeatureDepth m_s_Zd;
-  vpMatrix m_tJe;
-  vpMatrix m_eJe;
-  vpImagePoint m_head_cog_des;
-  vpImagePoint m_head_cog_cur;
-  vpHomogeneousMatrix m_eMc;
-  double m_Z;
-  double m_Zd;
-  vpColVector m_base_vel;
-
   // Servo Base PBVS
+  bool m_pbvs_base;
   vpServo m_base_task;
   vpFeatureTranslation m_t;
   vpFeatureThetaU m_tu;
@@ -161,6 +158,26 @@ protected:
   // Servo Follow people
   vpPepperFollowPeople * m_follow_people;
 
+  // Servo Base to track an object
+  vpPolygon m_obj_polygon;
+  int m_status_obj_polygon;
+  vpServo m_base_poly_task;
+
+  vpFeaturePoint m_s;
+  vpFeaturePoint m_sd;
+  vpFeatureDepth m_s_Z;
+  vpFeatureDepth m_s_Zd;
+  vpMatrix m_tJe;
+  vpMatrix m_eJe;
+  vpImagePoint m_head_cog_des;
+  vpImagePoint m_head_cog_cur;
+  vpHomogeneousMatrix m_eMc;
+  double m_Z;
+  double m_Zd;
+  vpColVector m_base_vel;
+  double m_coeff;
+
+
   // New Proxy
   qi::SessionPtr m_session; //!< Session to connect to Pepper
   qi::AnyObject m_qiProxy;
@@ -168,6 +185,7 @@ protected:
   AL::ALMemoryProxy * m_mem_proxy;
   AL::ALSpeechRecognitionProxy * m_asr_proxy;
   std::vector<std::string> m_vocabulary;
+  AL::ALTextToSpeechProxy * m_tts_proxy;
 
 
   //conditions

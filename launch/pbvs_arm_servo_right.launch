@@ -4,7 +4,7 @@
 
 
   <node name="vs_grasping_pepper" pkg="vs_grasping_pepper" type="vs_grasping_pepper_node" output="screen">
-    <param name="ip" value="$(optenv PEPPER_IP 131.254.10.126)" />
+    <param name="ip" value="$(optenv PEPPER_IP_WIFI 131.254.10.126)" />
     <param name="cmdVelTopicName" value="/pepper/joint_command" />
     <param name="eMh_pepper_path" value="file://$(find pepper_launch)/data/transformation/eMh_pepper.xml" />
     <param name="offsetFileName" value="file://$(find pepper_launch)/data/objects/tabascobox_green/offset.xml" />
