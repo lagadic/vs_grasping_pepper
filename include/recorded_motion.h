@@ -260,7 +260,7 @@ bool goTointialPose(AL::ALMotionProxy *motion)
 
   try
   {
-    motion->angleInterpolationBezier(names, times, keys);
+    motion->post.angleInterpolationBezier(names, times, keys);
   }
   catch(const std::exception&)
   {
@@ -506,7 +506,7 @@ bool backTointialPose(AL::ALMotionProxy *motion)
 
   try
   {
-    motion->angleInterpolationBezier(names, times, keys);
+    motion->post.angleInterpolationBezier(names, times, keys);
   }
   catch(const std::exception&)
   {
@@ -648,7 +648,7 @@ bool goToInitialPoseBase(AL::ALMotionProxy *motion)
 
   try
   {
-    motion->angleInterpolationBezier(names, times, keys);
+    motion->post.angleInterpolationBezier(names, times, keys);
   }
   catch(const std::exception&)
   {
@@ -789,7 +789,7 @@ bool goToInitialPBVSPoseBase(AL::ALMotionProxy *motion)
   keys[16][0] = AL::ALValue::array(0.961776, AL::ALValue::array(3, -0.506667, 0), AL::ALValue::array(3, 0, 0));
   try
   {
-    motion->angleInterpolationBezier(names, times, keys);
+    motion->post.angleInterpolationBezier(names, times, keys);
   }
   catch(const std::exception&)
   {

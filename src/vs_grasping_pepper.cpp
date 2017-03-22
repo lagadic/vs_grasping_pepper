@@ -14,8 +14,9 @@
 #include "recorded_motion.h"
 
 
-vs_grasping_pepper::vs_grasping_pepper(ros::NodeHandle &nh): m_cam(),  m_camInfoIsInitialized(false), m_asr_proxy(),
-  m_tts_proxy()
+vs_grasping_pepper::vs_grasping_pepper(ros::NodeHandle &nh): m_cam(),  m_camInfoIsInitialized(false), m_camIsInitialized(false), m_asr_proxy(),
+  m_tts_proxy(), m_it(n), m_points()
+
 {
   // read in config options
   n = nh;
@@ -24,7 +25,6 @@ vs_grasping_pepper::vs_grasping_pepper(ros::NodeHandle &nh): m_cam(),  m_camInfo
 
   m_cMh_isInitialized = false;
   m_cMdh_isInitialized = false;
-
   m_statusPoseHand = 0;
   m_statusPoseDesired = 0;
   m_servo_time_init = 0;
@@ -36,10 +36,12 @@ vs_grasping_pepper::vs_grasping_pepper(ros::NodeHandle &nh): m_cam(),  m_camInfo
   n.param<std::string>("actualPoseTopicName", actualPoseTopicName, "/pepper_hand_pose");
   n.param<std::string>("desiredPoseTopicName", desiredPoseTopicName, "/desired_pepper_hand_pose");
   n.param<std::string>("cmdVelTopicName", cmdVelTopicName, "/joint_state");
-  n.param<std::string>("cameraInfoName", m_cameraInfoName, "/camera/camera_info");
+  n.param<std::string>("cameraInfoName", m_cameraInfoName, "/pepper_robot/camera/bottom/camera_info");
+  n.param<std::string>("cameraTopicName", m_cameraTopicName, "/pepper_robot/camera/bottom/image_rect_color");
   n.param<std::string>("statusPoseHandTopicName", statusPoseHandTopicName, "/pepper_hand_pose/status");
   n.param<std::string>("statusObjectPolygonTopicName", m_statusObjectPolygonTopicName, "/vision/predator_alert/status");
   n.param<std::string>("ObjectPolygonTopicName", m_objectPolygonTopicName, "/vision/predator_alert");
+  n.param<std::string>("pointArrayName", m_pointArrayName, "/whycon/points");
   n.param<std::string>("opt_arm", m_opt_arm, "right");
   n.param<std::string>("eMh_pepper_path", m_eMh_pepper_path, "");
   n.param<std::string>("offsetFileName", m_offsetFileName, "pose.xml");
@@ -81,6 +83,9 @@ vs_grasping_pepper::vs_grasping_pepper(ros::NodeHandle &nh): m_cam(),  m_camInfo
   m_cameraInfoSub = n.subscribe( m_cameraInfoName, 1, (boost::function < void(const sensor_msgs::CameraInfoConstPtr & )>) boost::bind( &vs_grasping_pepper::getCameraInfoCb, this, _1 ));
   m_statusObjectPolygonSub = n.subscribe( m_statusObjectPolygonTopicName, 1, (boost::function < void(const std_msgs::Int8::ConstPtr & )>) boost::bind( &vs_grasping_pepper::getStatusObjectPolygonCb, this, _1 ));
   m_ObjectPolygonSub = n.subscribe( m_objectPolygonTopicName, 1, (boost::function < void(const geometry_msgs::Polygon::ConstPtr & )>) boost::bind( &vs_grasping_pepper::getObjectPolygonCb, this, _1 ));
+  m_pointArraySub = n.subscribe( m_pointArrayName, 1, (boost::function < void(const whycon::PointArrayConstPtr &)>) boost::bind( &vs_grasping_pepper::getPointArrayCb, this, _1 ));
+
+  m_itSub = m_it.subscribe(m_cameraTopicName, 1, (boost::function < void(const sensor_msgs::ImageConstPtr&)>) boost::bind( &vs_grasping_pepper::imageCb, this, _1 ));
 
   //cmdVelPub = n.advertise<sensor_msgs::JointState >(cmdVelTopicName, 10);
 
@@ -114,9 +119,9 @@ vs_grasping_pepper::vs_grasping_pepper(ros::NodeHandle &nh): m_cam(),  m_camInfo
   m_eMc = vpNaoqiGrabber::getExtrinsicCameraParameters("CameraBottomPepper",vpCameraParameters::perspectiveProjWithDistortion);
 
   // Init display
-  I.resize(480, 640, 0);
-  d.init(I);
-  vpDisplay::setTitle(I, "ViSP viewer");
+  // I.resize(480, 640, 0);
+  // d.init(I);
+  // vpDisplay::setTitle(I, "ViSP viewer");
   // vpDisplay::display(I);
   //vpDisplay::flush(I);
 
@@ -248,6 +253,10 @@ vs_grasping_pepper::~vs_grasping_pepper(){
 
 void  vs_grasping_pepper::initializationVS()
 {
+
+  d.init(I);
+  vpDisplay::setTitle(I, "ViSP viewer");
+
   // Visual Servoing using the COGx and the Area of the polygon
 
   m_base_poly_task.setServo(vpServo::EYEINHAND_L_cVe_eJe) ;
@@ -283,15 +292,12 @@ void  vs_grasping_pepper::initializationVS()
 
 }
 
-
-
 void vs_grasping_pepper::spin()
 {
+
   ros::Rate loop_rate(freq);
-  vpDisplay::display(I);
 
-
-  while(!m_camInfoIsInitialized)
+  while(!m_camInfoIsInitialized) // && !m_camIsInitialized)
   {
     ros::spinOnce();
     loop_rate.sleep();
@@ -300,7 +306,10 @@ void vs_grasping_pepper::spin()
   // Initialize Visual servoing variables
   this->initializationVS();
 
+  vpDisplay::display(I);
+
   while(ros::ok()){
+
     vpDisplay::display(I);
 
     vpMouseButton::vpMouseButtonType button;
@@ -309,7 +318,7 @@ void vs_grasping_pepper::spin()
     // Display useful informations
     if (m_cMdh_isInitialized && m_state < RaiseArm) // Box frames
     {
-      vpDisplay::displayFrame(I, m_cMdh, m_cam, 0.06, vpColor::red);
+      vpDisplay::displayFrame(I, m_cMdh, m_cam, 0.06, vpColor::red, 2);
       if (m_state > GoToInitialPosition)
         vpDisplay::displayFrame(I, m_cMdh * m_offset, m_cam, 0.06, vpColor::cyan);
       if (m_state == ServoBase)
@@ -317,7 +326,13 @@ void vs_grasping_pepper::spin()
     }
 
     if (m_statusPoseHand  && m_state < RaiseArm) // Hand frame
-      vpDisplay::displayFrame(I, m_cMh, m_cam, 0.06, vpColor::none);
+    {
+      vpDisplay::displayFrame(I, m_cMh, m_cam, 0.06, vpColor::none , 2);
+      for (unsigned int i = 0; i < m_points.size(); i++)
+        vpDisplay::displayPoint(I, m_points[i], vpColor::red, 4 );
+
+
+    }
 
     if (m_state == Learning)
     {
@@ -377,7 +392,6 @@ void vs_grasping_pepper::spin()
     //        m_state = WaitForServoBase; // DEBUG
     //    }
 
-
     if (m_state == AnswerRequest)
     {
       vpDisplay::displayText(I, 30, 30, "Waiting for command", vpColor::green);
@@ -436,25 +450,25 @@ void vs_grasping_pepper::spin()
       }
 
       if(m_status_obj_polygon == 1)
-        m_obj_polygon.display(I,vpColor::blue);
+        //m_obj_polygon.display(I,vpColor::blue);
 
-      //std::cout << "Area:" << m_obj_polygon.getArea() << std::endl;
-      //std::cout << "u:" << m_obj_polygon.getCenter().get_u() << std::endl;
-      // std::cout << "v:" << m_obj_polygon.getCenter().get_v() << std::endl;
-      // std::cout << "m_obj_polygon.getCenter():" <<   m_obj_polygon.getCenter() << std::endl;
+        //std::cout << "Area:" << m_obj_polygon.getArea() << std::endl;
+        //std::cout << "u:" << m_obj_polygon.getCenter().get_u() << std::endl;
+        // std::cout << "v:" << m_obj_polygon.getCenter().get_v() << std::endl;
+        // std::cout << "m_obj_polygon.getCenter():" <<   m_obj_polygon.getCenter() << std::endl;
 
-      //  double surface = 1./sqrt(m_obj_polygon.getArea()/(m_cam.get_px()*m_cam.get_py()));
-      // std::cout << "surface: " << surface << std::endl;
-      //  std::cout << "dist: " << surface*m_coeff << std::endl;
-      //std::cout << "coeff: " << 0.58/surface << std::endl;
+        //  double surface = 1./sqrt(m_obj_polygon.getArea()/(m_cam.get_px()*m_cam.get_py()));
+        // std::cout << "surface: " << surface << std::endl;
+        //  std::cout << "dist: " << surface*m_coeff << std::endl;
+        //std::cout << "coeff: " << 0.58/surface << std::endl;
 
-      if (m_servo_enabled && !this->computeBaseTLDControlLaw())
-        vpDisplay::displayText(I, 30, 30, "Servo Base TDL enabled", vpColor::green);
-      else
-      {
-        vpDisplay::displayText(I, 30, 30, "Middle click to enable the base VS, left click to start the PBVS", vpColor::green);
-        robot.stopBase();
-      }
+        if (m_servo_enabled && !this->computeBaseTLDControlLaw())
+          vpDisplay::displayText(I, 30, 30, "Servo Base TDL enabled", vpColor::green);
+        else
+        {
+          vpDisplay::displayText(I, 30, 30, "Middle click to enable the base VS, left click to start the PBVS", vpColor::green);
+          robot.stopBase();
+        }
 
 
       if (ret && button == vpMouseButton::button1)
@@ -604,14 +618,13 @@ void vs_grasping_pepper::spin()
       }
     }
 
-
     if (m_state == Rotate90)
     {
       vpDisplay::displayText(I, 30, 30, "left click to move the head", vpColor::green);
 
       //robot.startPepperControl();
       //robot.getProxy()->moveTo(-0.1,0.0,0.0);
-      robot.getProxy()->moveTo(-0.1,0.0,vpMath::rad(-150.0));
+      robot.getProxy()->post.moveTo(-0.1,0.0,vpMath::rad(-150.0));
 
       m_tts_proxy->post.say("Where are you?");
 
@@ -622,8 +635,6 @@ void vs_grasping_pepper::spin()
       m_follow_people->setReverse(false);
       m_servo_enabled = true;
       //vpTime::wait(300);
-
-
     }
 
     if (m_state == MoveHeadToZero)
@@ -646,7 +657,6 @@ void vs_grasping_pepper::spin()
         m_state = FollowPerson;
         ret = false;
       }
-
     }
 
     if (m_state == FollowPerson)
@@ -780,7 +790,6 @@ void vs_grasping_pepper::saveOffset()
   }
 }
 
-
 void vs_grasping_pepper::saveDesiredBoxPosePBVS()
 {
   vpXmlParserHomogeneousMatrix xml;
@@ -803,9 +812,6 @@ void vs_grasping_pepper::saveDesiredBoxPosePBVS()
               << "m_statusPoseDesired: " << m_statusPoseDesired << std::endl;
   }
 }
-
-
-
 
 bool vs_grasping_pepper::computeArmControlLaw()
 {
@@ -861,7 +867,6 @@ bool vs_grasping_pepper::computeArmControlLaw()
     robot.stop(m_jointNames_arm);
 
   return vs_finished;
-
 }
 
 bool vs_grasping_pepper::computeBasePBVSControlLaw()
@@ -893,7 +898,6 @@ bool vs_grasping_pepper::computeBasePBVSControlLaw()
     m_t.buildFrom(cdMc);
     m_tu.buildFrom(cdMc);
 
-
     //m_base_task.print();
     //    std::cout << "    m_base_task.getInteractionMatrix()" << m_base_task.getInteractionMatrix() << std::endl;
     //    std::cout << "m_base_task.getError()" << m_base_task.getError() << std::endl;
@@ -917,8 +921,6 @@ bool vs_grasping_pepper::computeBasePBVSControlLaw()
     //    }
     //    else
     //    std::cout << "VEL too low:" << m_base_vel.euclideanNorm() << std::endl;
-
-
     //    vpTranslationVector t_error_grasp = cdMc.getTranslationVector();
     //    vpRotationMatrix R_error_grasp;
     //    cdMc.extract(R_error_grasp);
@@ -963,8 +965,6 @@ bool vs_grasping_pepper::computeBaseTLDControlLaw()
     //    P.project(m_cMdh);
     //    double u=0, v=0;
     //    vpMeterPixelConversion::convertPoint(m_cam, P.get_x(), P.get_y(), u, v);
-
-
     //    if (u<= I.getWidth() && v <= I.getHeight())
     // m_head_cog_cur.set_uv(m_obj_polygon.getCenter().get_u(),m_obj_polygon.getCenter().get_v());
 
@@ -973,10 +973,8 @@ bool vs_grasping_pepper::computeBaseTLDControlLaw()
     vpDisplay::displayCross(I, m_head_cog_des, 10, vpColor::red);
     vpDisplay::displayCross(I, m_head_cog_cur, 10, vpColor::green);
 
-
     //std::cout << "m_head_cog_des" << m_head_cog_des << std::endl;
     //std::cout << "m_head_cog_cur" << m_head_cog_cur << std::endl;
-
 
     vpHomogeneousMatrix torsoMHeadPith( robot.getProxy()->getTransform("HeadPitch", 0, true));// get transformation  matrix between torso and HeadRoll
     vpVelocityTwistMatrix HeadPitchVLtorso(torsoMHeadPith.inverse());
@@ -996,13 +994,11 @@ bool vs_grasping_pepper::computeBaseTLDControlLaw()
 
     std::cout << "Distance" << m_Z << std::endl;
 
-
     // Update the current x feature
     // double x,y;
     // vpPixelMeterConversion::convertPoint(m_cam, m_head_cog_cur, x, y);
     // m_s.buildFrom(y, x, 0.58);
     vpFeatureBuilder::create(m_s, m_cam, m_head_cog_cur);
-
 
     // Update log(Z/Z*) feature. Since the depth Z change, we need to update the intection matrix
     m_s_Z.buildFrom(m_s.get_x(), m_s.get_y(), m_Z, log(m_Z/m_Zd)) ;
@@ -1013,7 +1009,6 @@ bool vs_grasping_pepper::computeBaseTLDControlLaw()
     //std::cout << "  m_base_vel:  " <<   m_base_vel << std::endl;
 
     m_qiProxy.async<void>("move", m_base_vel[0], m_base_vel[1], m_base_vel[2]);
-
   }
   else
     robot.stopBase();
@@ -1031,7 +1026,6 @@ void vs_grasping_pepper::getDesiredPoseCb(const geometry_msgs::TransformStamped:
     ROS_INFO("DesiredPose received");
     m_cMdh_isInitialized = true;
   }
-
 }
 
 void vs_grasping_pepper::getActualPoseCb(const geometry_msgs::PoseStamped::ConstPtr &actualPose)
@@ -1087,6 +1081,32 @@ void vs_grasping_pepper::getObjectPolygonCb(const geometry_msgs::Polygon::ConstP
   corners.push_back( vpImagePoint(x0 + w, y0 + h) );
   corners.push_back( vpImagePoint(x0 + w, y0 ) );
   m_obj_polygon.buildFrom(corners);
+}
+
+
+void vs_grasping_pepper::imageCb(const sensor_msgs::ImageConstPtr& msg)
+{
+  boost::mutex::scoped_lock(m_lock);
+  try
+  {
+    I = visp_bridge::toVispImageRGBa(*msg); //make sure the image isn't worked on by locking a mutex
+  }
+  catch(...)
+  {
+    ROS_ERROR("Could not convert from '%s' to Visp 'RGB'.", msg->encoding.c_str());
+  }
+  m_camIsInitialized = 1;
+}
+
+void vs_grasping_pepper::getPointArrayCb(const whycon::PointArrayConstPtr &msg)
+{
+  m_points.clear();
+  for (unsigned int i = 0; i < msg->points.size(); i++)
+  {
+    vpImagePoint p(msg->points[i].y, msg->points[i].x );
+
+    m_points.push_back(p);
+  }
 }
 
 qi::AnyValue vs_grasping_pepper::fromStringVectorToAnyValue(const std::vector<std::string> &vector)

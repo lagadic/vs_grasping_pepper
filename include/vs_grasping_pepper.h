@@ -6,10 +6,13 @@
 #include <sensor_msgs/SetCameraInfo.h>
 #include <sensor_msgs/Image.h>
 #include <sensor_msgs/CameraInfo.h>
+#include <image_transport/image_transport.h>
 #include <geometry_msgs/PoseStamped.h>
 #include <geometry_msgs/TransformStamped.h>
 #include <geometry_msgs/Polygon.h>
 #include <std_msgs/Int8.h>
+#include <whycon/PointArray.h>
+
 
 #include <visp3/core/vpHomogeneousMatrix.h>
 #include <visp3/core/vpMatrix.h>
@@ -54,6 +57,8 @@ public:
   void getStatusPoseHandCb(const std_msgs::Int8::ConstPtr &status);
   void getStatusPoseDesiredCb(const std_msgs::Int8::ConstPtr &status);
   void getStatusObjectPolygonCb(const std_msgs::Int8::ConstPtr  &status);
+  void getPointArrayCb(const whycon::PointArrayConstPtr &msg);
+  void imageCb(const sensor_msgs::ImageConstPtr& msg);
   void getRobotJoints();
   void publishCmdVel(const vpColVector &q);
 
@@ -96,8 +101,11 @@ protected:
   std::string m_ip;
 
   //Display
-  vpImage<unsigned char> I;
+  vpImage<vpRGBa> I;
   vpDisplayX d;
+  boost::mutex m_lock;
+  std::vector< vpImagePoint> m_points;
+
 
   // ROS
   ros::NodeHandle n;
@@ -110,6 +118,8 @@ protected:
   std::string m_objectPolygonTopicName;
   std::string m_opt_arm;
   std::string m_cameraInfoName;
+  std::string m_cameraTopicName;
+  std::string m_pointArrayName;
   ros::Subscriber actualPoseSub;
   ros::Subscriber desiredPoseSub;
   ros::Subscriber statusPoseHandSub;
@@ -117,6 +127,10 @@ protected:
   ros::Subscriber m_cameraInfoSub;
   ros::Subscriber m_ObjectPolygonSub;
   ros::Subscriber m_statusObjectPolygonSub;
+  ros::Subscriber m_pointArraySub;
+  image_transport::ImageTransport m_it;
+  image_transport::Subscriber m_itSub;
+
 
   ros::Publisher cmdVelPub;
   int freq;
@@ -195,5 +209,6 @@ protected:
   bool m_servo_enabled;
   bool m_camInfoIsInitialized;
   bool m_command_give_box;
+  bool m_camIsInitialized;
 
 };

@@ -11,6 +11,8 @@
     <param name="actualPoseTopicName" value="/pepper_hand_pose" />
     <param name="desiredPoseTopicName" value="/object_position" />
     <param name="statusPoseHandTopicName" value="/pepper_hand_pose/status" />
+    <param name="cameraInfoName" value="/pepper_robot/camera/bottom/camera_info" />
+    <param name="cameraTopicName" value="/pepper_robot/camera/bottom/image_raw" />    
     <param name="statusPoseDesiredTopicName" value="/tracker_mbt/status" />
     <param name="statusPoseDesired_isEnable" value="false" /> <!-- if statusPoseDesired_isEnable is true the subscribe statusPoseHandTopicName is enabled: the servo is computed when status == 1.  -->
     <param name="opt_arm" value="right" /> <!-- "rigth" or "left" -->

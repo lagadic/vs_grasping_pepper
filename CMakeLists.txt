@@ -12,6 +12,9 @@ find_package(catkin REQUIRED COMPONENTS
   std_msgs
   tf
   visp_bridge
+  image_transport
+  cv_bridge
+  whycon
 )
 
 find_package(VISP REQUIRED)
@@ -53,6 +56,8 @@ catkin_package(
   sensor_msgs
   std_msgs
   tf
+  image_transport
+  cv_bridge
 
   DEPENDS 
   VISP
