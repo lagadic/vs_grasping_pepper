@@ -624,7 +624,7 @@ void vs_grasping_pepper::spin()
 
       //robot.startPepperControl();
       //robot.getProxy()->moveTo(-0.1,0.0,0.0);
-      robot.getProxy()->post.moveTo(-0.1,0.0,vpMath::rad(-150.0));
+      robot.getProxy()->moveTo(-0.1,0.0,vpMath::rad(-150.0));
 
       m_tts_proxy->post.say("Where are you?");
 

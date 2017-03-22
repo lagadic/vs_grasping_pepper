@@ -506,7 +506,7 @@ bool backTointialPose(AL::ALMotionProxy *motion)
 
   try
   {
-    motion->post.angleInterpolationBezier(names, times, keys);
+    motion->angleInterpolationBezier(names, times, keys);
   }
   catch(const std::exception&)
   {
