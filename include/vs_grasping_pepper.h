@@ -24,16 +24,15 @@
 #include <visp3/visual_features/vpFeatureDepth.h>
 #include <visp/vpFeatureTranslation.h>
 
-
 #include <visp_bridge/3dpose.h>
 #include <visp_bridge/image.h>
 #include <visp_bridge/camera.h>
 
 #include <visp_naoqi/vpNaoqiRobot.h>
-#include <visp_naoqi/vpNaoqiConfig.h>
+//#include <visp_naoqi/vpNaoqiConfig.h>
 
-#include <vpServoArm.h>
-#include <vpPepperFollowPeople.h>
+#include <visp_naoqi/common/vpServoArm.h>
+#include <visp_naoqi/common/vpPepperFollowPeople.h>
 
 class vs_grasping_pepper
 {
@@ -88,7 +87,8 @@ public:
 protected:
 
   // Robot
-  vpNaoqiRobot robot;
+  vpNaoqiRobot * robot;
+  qi::SessionPtr m_session;
   std::vector<std::string> m_jointNames_arm;
   std::vector<std::string> m_bodyJointNames;
   std::vector<double> m_bodyJointValues;
@@ -193,13 +193,16 @@ protected:
 
 
   // New Proxy
-  qi::SessionPtr m_session; //!< Session to connect to Pepper
-  qi::AnyObject m_qiProxy;
-  // Proxy
-  AL::ALMemoryProxy * m_mem_proxy;
-  AL::ALSpeechRecognitionProxy * m_asr_proxy;
+  //qi::AnyObject m_qiProxy;
+  qi::AnyObject m_pMotion; //!< Motion proxy
+  qi::AnyObject m_pMemory; //!< Memory proxy
+  qi::AnyObject m_pTextToSpeech; //!< TextToSpeech proxy
+  qi::AnyObject * m_pSpeechRecognition; //!< ALSpeechRecognition proxy
+
+  //AL::ALMemoryProxy * m_mem_proxy;
+  //AL::ALSpeechRecognitionProxy * m_asr_proxy;
   std::vector<std::string> m_vocabulary;
-  AL::ALTextToSpeechProxy * m_tts_proxy;
+  //AL::ALTextToSpeechProxy * m_tts_proxy;
 
 
   //conditions
