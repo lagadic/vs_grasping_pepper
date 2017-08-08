@@ -423,7 +423,7 @@ bool goTointialPose(qi::AnyObject &motion)
 
   try
   {
-    motion.call<void>("angleInterpolationBezier", names, times, keys);
+    motion.async<void>("angleInterpolationBezier", names, times, keys);
   }
   catch(const std::exception&)
   {
@@ -836,7 +836,7 @@ bool backTointialPose(qi::AnyObject &motion)
 
   try
   {
-    motion.call<void>("angleInterpolationBezier", names, times, keys);
+    motion.async<void>("angleInterpolationBezier", names, times, keys);
   }
   catch(const std::exception&)
   {
@@ -1093,7 +1093,7 @@ bool goToInitialPoseBase(qi::AnyObject &motion)
 
   try
   {
-    motion.call<void>("angleInterpolationBezier", names, times, keys);
+    motion.async<void>("angleInterpolationBezier", names, times, keys);
   }
   catch(const std::exception&)
   {
@@ -1348,7 +1348,7 @@ bool goToInitialPBVSPoseBase(qi::AnyObject &motion)
 
   try
   {
-    motion.call<void>("angleInterpolationBezier", names, times, keys);
+    motion.async<void>("angleInterpolationBezier", names, times, keys);
   }
   catch(const std::exception&)
   {

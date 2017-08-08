@@ -50,7 +50,7 @@ include_directories(include)
 
 include_directories(SYSTEM
   ${VISP_INCLUDE_DIRS}
-  ${VISP_NAOQI_INCLUDE_DIRS}
+  ${visp_naoqi_INCLUDE_DIRS}
   ${NAOqi_INCLUDE_DIRS}
   ${catkin_INCLUDE_DIRS}
 
@@ -74,7 +74,7 @@ target_link_libraries(vs_grasping_pepper
   ${catkin_LIBRARIES}
   ${VISP_LIBRARIES}
   ${naoqi_libqi_LIBRARIES}
-  ${VISP_NAOQI_LIBRARIES}
+  ${visp_naoqi_LIBRARIES}
 )
 
 ## Declare a cpp executable

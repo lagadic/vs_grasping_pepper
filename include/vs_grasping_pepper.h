@@ -81,7 +81,8 @@ public:
     MoveHeadToZero,
     FollowPerson,
     OpenHand,
-    End
+    End,
+    WaitEnd
   } State_t;
 
 protected:
