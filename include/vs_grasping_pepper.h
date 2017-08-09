@@ -6,13 +6,14 @@
 #include <sensor_msgs/SetCameraInfo.h>
 #include <sensor_msgs/Image.h>
 #include <sensor_msgs/CameraInfo.h>
+#include <sensor_msgs/LaserScan.h>
+
 #include <image_transport/image_transport.h>
 #include <geometry_msgs/PoseStamped.h>
 #include <geometry_msgs/TransformStamped.h>
 #include <geometry_msgs/Polygon.h>
 #include <std_msgs/Int8.h>
 #include <whycon/PointArray.h>
-
 
 #include <visp3/core/vpHomogeneousMatrix.h>
 #include <visp3/core/vpMatrix.h>
@@ -57,9 +58,12 @@ public:
   void getStatusPoseDesiredCb(const std_msgs::Int8::ConstPtr &status);
   void getStatusObjectPolygonCb(const std_msgs::Int8::ConstPtr  &status);
   void getPointArrayCb(const whycon::PointArrayConstPtr &msg);
+  void getLaserCb(const sensor_msgs::LaserScanConstPtr &msg);
   void imageCb(const sensor_msgs::ImageConstPtr& msg);
   void getRobotJoints();
   void publishCmdVel(const vpColVector &q);
+  std::vector<double> obs_avoidance_control(double vx, double vy, double wz);
+
 
   qi::AnyValue fromStringVectorToAnyValue(const std::vector<std::string> &vector);
   qi::AnyValue fromDoubleVectorToAnyValue(const std::vector<double> &vector);
@@ -107,7 +111,6 @@ protected:
   boost::mutex m_lock;
   std::vector< vpImagePoint> m_points;
 
-
   // ROS
   ros::NodeHandle n;
   std::string cmdVelTopicName;
@@ -121,6 +124,7 @@ protected:
   std::string m_cameraInfoName;
   std::string m_cameraTopicName;
   std::string m_pointArrayName;
+  std::string m_laserTopicName;
   ros::Subscriber actualPoseSub;
   ros::Subscriber desiredPoseSub;
   ros::Subscriber statusPoseHandSub;
@@ -129,9 +133,9 @@ protected:
   ros::Subscriber m_ObjectPolygonSub;
   ros::Subscriber m_statusObjectPolygonSub;
   ros::Subscriber m_pointArraySub;
+  ros::Subscriber m_laserSub;
   image_transport::ImageTransport m_it;
   image_transport::Subscriber m_itSub;
-
 
   ros::Publisher cmdVelPub;
   int freq;
@@ -172,6 +176,20 @@ protected:
 
   // Servo Follow people
   vpPepperFollowPeople * m_follow_people;
+
+  // Obstacle avoidance using laser
+  std::vector<float> m_laser_data;
+  bool m_laserInit;
+  float m_angleMin;
+  float m_angleMax;
+  float m_angleIncrement;
+  float m_min_dist;
+  vpMatrix m_L;
+  std::vector <vpMatrix> m_A;
+
+
+  std::vector< vpHomogeneousMatrix> m_Hlaser;
+  std::vector< vpMatrix> m_Vlaser;
 
   // Servo Base to track an object
   vpPolygon m_obj_polygon;

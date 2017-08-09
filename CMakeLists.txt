@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(vs_grasping_pepper)
 
+add_definitions( -DCATKIN_BUILD )
+
 set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
 
 
@@ -18,10 +20,10 @@ find_package(catkin REQUIRED COMPONENTS
   whycon
 )
 
-find_package(VISP REQUIRED)
-
 add_definitions(-DLIBQI_VERSION=${naoqi_libqi_VERSION_MAJOR}${naoqi_libqi_VERSION_MINOR})
 
+find_package(VISP REQUIRED)
+find_package(quadprog REQUIRED)
 find_package(VISP_NAOQI REQUIRED )
 
 catkin_package(
@@ -53,6 +55,7 @@ include_directories(SYSTEM
   ${visp_naoqi_INCLUDE_DIRS}
   ${NAOqi_INCLUDE_DIRS}
   ${catkin_INCLUDE_DIRS}
+  ${QUADPROG_INCLUDE_DIRS}
 
 )
 
@@ -75,6 +78,7 @@ target_link_libraries(vs_grasping_pepper
   ${VISP_LIBRARIES}
   ${naoqi_libqi_LIBRARIES}
   ${visp_naoqi_LIBRARIES}
+  ${QUADPROG_LIBRARIES}
 )
 
 ## Declare a cpp executable
@@ -86,6 +90,7 @@ add_executable(vs_grasping_pepper_node src/main.cpp)
     ${resource_retriever_LIBRARIES}
     ${catkin_LIBRARIES}
     ${Boost_LIBRARIES}
+    ${QUADPROG_LIBRARIES}
     vs_grasping_pepper
     )
 

@@ -9,18 +9,20 @@
 #include <visp/vpFeatureBuilder.h>
 #include <visp/vpPixelMeterConversion.h>
 #include <visp/vpMeterPixelConversion.h>
+#include <visp/vpMatrix.h>
 
 #include "vs_grasping_pepper.h"
 #include "recorded_motion.h"
 
+#include <QuadProg++.hh>
 
-vs_grasping_pepper::vs_grasping_pepper(ros::NodeHandle &nh): m_cam(),  m_camInfoIsInitialized(false), m_camIsInitialized(false), m_it(nh), m_points(), robot()
-
+vs_grasping_pepper::vs_grasping_pepper(ros::NodeHandle &nh): m_cam(),  m_camInfoIsInitialized(false), m_camIsInitialized(false),
+  m_it(nh), m_points(), robot(), m_A(), m_laserInit(false)
 {
   // read in config options
   n = nh;
 
-  m_state = Init;//Init;//Init; //GoToInitialPosition;
+  m_state = Rotate90;//Init;//Init; //GoToInitialPosition;
 
   m_cMh_isInitialized = false;
   m_cMdh_isInitialized = false;
@@ -37,6 +39,7 @@ vs_grasping_pepper::vs_grasping_pepper(ros::NodeHandle &nh): m_cam(),  m_camInfo
   n.param<std::string>("cmdVelTopicName", cmdVelTopicName, "/joint_state");
   n.param<std::string>("cameraInfoName", m_cameraInfoName, "/pepper_robot/camera/bottom/camera_info");
   n.param<std::string>("cameraTopicName", m_cameraTopicName, "/pepper_robot/camera/bottom/image_rect_color");
+  n.param<std::string>("laserTopicName", m_laserTopicName, "/pepper_robot/laser");
   n.param<std::string>("statusPoseHandTopicName", statusPoseHandTopicName, "/pepper_hand_pose/status");
   n.param<std::string>("statusObjectPolygonTopicName", m_statusObjectPolygonTopicName, "/vision/predator_alert/status");
   n.param<std::string>("ObjectPolygonTopicName", m_objectPolygonTopicName, "/vision/predator_alert");
@@ -94,6 +97,7 @@ vs_grasping_pepper::vs_grasping_pepper(ros::NodeHandle &nh): m_cam(),  m_camInfo
   m_statusObjectPolygonSub = n.subscribe( m_statusObjectPolygonTopicName, 1, (boost::function < void(const std_msgs::Int8::ConstPtr & )>) boost::bind( &vs_grasping_pepper::getStatusObjectPolygonCb, this, _1 ));
   m_ObjectPolygonSub = n.subscribe( m_objectPolygonTopicName, 1, (boost::function < void(const geometry_msgs::Polygon::ConstPtr & )>) boost::bind( &vs_grasping_pepper::getObjectPolygonCb, this, _1 ));
   m_pointArraySub = n.subscribe( m_pointArrayName, 1, (boost::function < void(const whycon::PointArrayConstPtr &)>) boost::bind( &vs_grasping_pepper::getPointArrayCb, this, _1 ));
+  m_laserSub = n.subscribe( m_laserTopicName, 1, (boost::function < void(const sensor_msgs::LaserScanConstPtr & )>) boost::bind( &vs_grasping_pepper::getLaserCb, this, _1 ));
 
   m_itSub = m_it.subscribe(m_cameraTopicName, 1, (boost::function < void(const sensor_msgs::ImageConstPtr&)>) boost::bind( &vs_grasping_pepper::imageCb, this, _1 ));
 
@@ -236,6 +240,14 @@ vs_grasping_pepper::vs_grasping_pepper(ros::NodeHandle &nh): m_cam(),  m_camInfo
       std::cout << "Homogeneous matrix " << name_transform_desbox <<": " << std::endl << m_cMdbox << std::endl;
   }
 
+  // Init obstacle avoidance
+  //Interaction matrix
+  m_L.resize(1,6);
+  m_L[0][0] = -1;
+  m_min_dist = 0.7;
+  m_angleMin = 0.0;
+  m_angleMax = 0.0;
+
 }
 
 vs_grasping_pepper::~vs_grasping_pepper(){
@@ -299,6 +311,14 @@ void vs_grasping_pepper::spin()
   {
     ros::spinOnce();
     loop_rate.sleep();
+  }
+
+  while(ros::ok())
+  {
+    ros::spinOnce();
+    loop_rate.sleep();
+    if (m_laserInit)
+      break;
   }
 
   // Initialize Visual servoing variables
@@ -571,11 +591,11 @@ void vs_grasping_pepper::spin()
       robot->setStiffness("RHand", 1.0);
       robot->getMotionProxy()->call<void>("setAngles","RHand", 0.0, 0.9);
 
-      if (ret && button == vpMouseButton::button1)
-      {
+//      if (ret && button == vpMouseButton::button1)
+//      {
         m_state = RaiseArm;
-        ret = false;
-      }
+//        ret = false;
+//      }
     }
 
     if (m_state == RaiseArm)
@@ -629,7 +649,7 @@ void vs_grasping_pepper::spin()
       static bool first_time_rotate = true;
       if (first_time_rotate)
       {
-        robot->moveTo(-0.1, 0.0 , vpMath::rad(-150.0));
+        robot->moveTo(-0.1, 0.0 , vpMath::rad(-170.0));
         m_pTextToSpeech.async<void>("say", "Where are you?");
         first_time_rotate = false;
       }
@@ -640,11 +660,11 @@ void vs_grasping_pepper::spin()
         robot->setStiffness(m_jointNames_head, 1.f);
         m_follow_people = new vpPepperFollowPeople(m_session, robot, m_pSpeechRecognition, m_vocabulary);
         std::cout << " set follow person" << std::endl;
-        m_follow_people->setDesiredDistance(0.9);
+        m_follow_people->setDesiredDistance(0.94);
         m_follow_people->setReverse(true);
         m_follow_people->activateTranslationBase();
-        vpAdaptiveGain gain(0.9, 0.7, 7);
-        m_follow_people->setLambdaBaseFollow(gain);
+       // vpAdaptiveGain gain(0.9, 0.7, 7);
+       // m_follow_people->setLambdaBaseFollow(gain);
         m_servo_enabled = true;
         ret = false;
       }
@@ -682,15 +702,26 @@ void vs_grasping_pepper::spin()
         m_servo_enabled = !m_servo_enabled;
         ret = false;
       }
-      if (m_servo_enabled)
+      m_follow_people->computeAndApplyServo(false);
+      if (m_servo_enabled && m_follow_people->getStatusDetection())
       {
-        m_follow_people->computeAndApplyServo();
+        vpColVector vel = m_follow_people->getCommand();
+        std::cout << vel << std::endl;
+
+        std::vector<double> final_vel = obs_avoidance_control(vel[0], vel[1], vel[2]);
+        std::vector<float> head_vel(m_jointNames_head.size());
+        head_vel[0] = vel[3];
+        head_vel[1] = vel[4];
+        robot->setVelocity(m_jointNames_head, head_vel);
+        robot->setBaseVelocity(final_vel[0], final_vel[1], final_vel[2]);
+
         vpDisplay::displayText(I, 30, 30, "Servo Base enabled", vpColor::green);
       }
       else
       {
         vpDisplay::displayText(I, 30, 30, "Middle click to enable/disable following a person, left click to opend the hand", vpColor::green);
         m_follow_people->stop();
+        robot->stopBase();
       }
 
       qi::AnyValue data_word_recognized;
@@ -787,7 +818,6 @@ void vs_grasping_pepper::spin()
     {
       // Do nothing
     }
-
 
     if (ret && button == vpMouseButton::button3)
       break;
@@ -1196,4 +1226,132 @@ qi::AnyValue vs_grasping_pepper::fromDoubleVectorToAnyValue(const std::vector<do
     std::cout << "Could not convert to qi::AnyValue \n\tTrace: " << e.what() << std::endl;
   }
   return res;
+}
+
+std::vector<double> vs_grasping_pepper::obs_avoidance_control(double vx, double vy, double wz)
+{
+  std::vector<double> final_vel(3);
+  Matrix<double> G, CE, CI;
+  Vector<double> g0, ce0, ci0, x;
+  int n, m, p;
+  char ch;
+
+  n = 3;
+
+  G.resize(n, n);
+  G[0][0] = std::abs(vx);
+  G[1][1] = std::abs(vy);
+  G[2][2] = std::abs(wz);
+  G[0][1] = 0.;
+  G[0][2] = 0.;
+  G[1][0] = 0.;
+  G[1][2] = 0.;
+  G[2][0] = 0.;
+  G[2][1] = 0.;
+
+  g0.resize(n);
+  g0[0] = - G[0][0] * vx ;
+  g0[1] = - G[1][1] * vy ;
+  g0[2] = - G[2][2] * wz ;
+
+  double lambda  = 1;
+  CI.resize(n, m_A.size());
+  ci0.resize(m_A.size());
+  for (unsigned int i = 0; i < m_A.size(); i++)
+  {
+    CI[0][i] = m_A[i][0][0];
+    CI[1][i] = m_A[i][0][1];
+    CI[2][i] = m_A[i][0][2];
+    ci0[i] = lambda * (m_laser_data[i] - m_min_dist);
+  }
+
+  //std::cout << m_laser_data[0] << std::endl << m_laser_data[4]  << std::endl;
+
+  m = 1;
+  CE.resize(n, m);
+  {
+    std::istringstream is("0.00000000000001, "
+                          "0.00000000000001");
+
+    for (int i = 0; i < n; i++)
+      for (int j = 0; j < m; j++)
+        is >> CE[i][j] >> ch;
+  }
+
+  ce0.resize(m);
+  {
+    std::istringstream is("0.00000000001 ");
+
+    for (int j = 0; j < m; j++)
+      is >> ce0[j] >> ch;
+  }
+  //std::cout << "G: " << std::endl  << G <<  std::endl;
+  //std::cout << "g0: " << std::endl << g0 << std::endl;
+  //std::cout << "-------------" << std::endl;
+  //std::cout << "CE: " << std::endl << CE << std::endl;
+  //std::cout << "ce0: " << std::endl << ce0 << std::endl;
+  //std::cout << "-------------" << std::endl;
+  //std::cout << "CI: " << std::endl << CI << std::endl;
+  //std::cout << "ci0: " << std::endl << ci0 << std::endl;
+  //std::cout << "-------------" << std::endl;
+  x.resize(n);
+  std::cout << "f: " << solve_quadprog(G, g0, CE, ce0, CI, ci0, x) << std::endl;
+  std::cout << "x: " << x << std::endl;
+
+  for (unsigned int i = 0; i < x.size(); i++)
+    final_vel[i] = x[i];
+
+  return final_vel;
+}
+
+void  vs_grasping_pepper::getLaserCb(const sensor_msgs::LaserScanConstPtr &msg)
+{
+  m_laser_data.clear();
+  for (unsigned int i = 0; i < msg->ranges.size(); i++)
+  {
+    if (i > 22 && i < 38)//msg->ranges[i] >= 0)
+    {
+      m_laser_data.push_back(msg->ranges[i]);
+      std::cout << "copy num" << i << "equal to" << msg->ranges[i] <<   std::endl;
+    }
+  }
+
+
+  if (!m_laserInit)
+  {
+    m_angleMin = msg->angle_min;
+    m_angleMax = msg->angle_max;
+    m_angleIncrement = msg->angle_increment;
+    m_laserInit = true;
+
+    // Initialize transformations matrix
+    vpMatrix eJe(6, 3);
+    eJe = 0;
+    eJe[0][0] = 1;  // vx
+    eJe[1][1] = 1;  // vx
+    eJe[5][1] = 1;  // wz
+
+    for (unsigned int i = 0; i < msg->ranges.size(); i++)
+    {
+      vpRxyzVector rxyz;
+      rxyz[2] = m_angleMin +  i * m_angleIncrement; // psi angle in rad around z axis
+      vpRotationMatrix R(rxyz);
+      vpTranslationVector t(0.0,0.0,0.0);
+      vpHomogeneousMatrix MtempR(t,R);
+      vpHomogeneousMatrix Mtempt(0.0,0.0,0.0,0.0,0.0,0.0);
+      vpVelocityTwistMatrix V(MtempR*Mtempt);
+      //      std::cout << V << std::endl;
+      //      std::cout << "-- " << std::endl;
+      //      std::cout<< "rxyz" <<  std::endl << rxyz << std::endl;
+      //      std::cout<< "MtempR" << std::endl  << MtempR << std::endl;
+      //      std::cout<< "V" <<  std::endl << V << std::endl;
+      //      std::cout<< "m_eJe" <<  std::endl << m_eJe << std::endl;
+      //      std::cout<< "m_L" <<  std::endl << m_L << std::endl;
+      //      std::cout<< "V * m_eJe" <<  std::endl << V * m_eJe << std::endl;
+      //      std::cout<< "(m_L * V * m_eJe" <<  std::endl << m_L * V * m_eJe << std::endl;
+
+      if (i > 22 && i < 38)//msg->ranges[i] >= 0)
+        m_A.push_back(m_L * V * eJe);
+    }
+  }
 }
