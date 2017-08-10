@@ -22,7 +22,7 @@ vs_grasping_pepper::vs_grasping_pepper(ros::NodeHandle &nh): m_cam(),  m_camInfo
   // read in config options
   n = nh;
 
-  m_state = Rotate90;//Init;//Init; //GoToInitialPosition;
+  m_state = WaitForServoBase;// Init;//Rotate90;//Init; //GoToInitialPosition;
 
   m_cMh_isInitialized = false;
   m_cMdh_isInitialized = false;
@@ -32,7 +32,7 @@ vs_grasping_pepper::vs_grasping_pepper(ros::NodeHandle &nh): m_cam(),  m_camInfo
   m_command_give_box = false;
   m_offset.eye();
 
-  n.param( "frequency", freq, 20);
+  n.param( "frequency", freq, 30);
   n.param<std::string>("ip", m_ip, "131.254.10.126");
   n.param<std::string>("actualPoseTopicName", actualPoseTopicName, "/pepper_hand_pose");
   n.param<std::string>("desiredPoseTopicName", desiredPoseTopicName, "/desired_pepper_hand_pose");
@@ -49,18 +49,15 @@ vs_grasping_pepper::vs_grasping_pepper(ros::NodeHandle &nh): m_cam(),  m_camInfo
   n.param<std::string>("offsetFileName", m_offsetFileName, "pose.xml");
   n.param("statusPoseDesired_isEnable", m_statusPoseDesired_isEnable, false );
   n.param("mode", m_mode, 0);
-  
-  
+    
   // Create a session to connect with the Robot
   m_session = qi::makeSession();
   std::string ip_port = "tcp://" + m_ip + ":9559";
   m_session->connect(ip_port);
 
-
   robot = new vpNaoqiRobot(m_session);
   robot->open();
   
-
   if (m_mode == 0)
     std::cout << "Mode 0: Visual servoing mode" << std::endl;
 
@@ -169,7 +166,7 @@ vs_grasping_pepper::vs_grasping_pepper(ros::NodeHandle &nh): m_cam(),  m_camInfo
   // Disable anti external collision base
   robot->setExternalCollisionProtectionEnabled("Move", false);
 
-  m_servo_enabled = false;
+  m_servo_enabled = true;//
   m_pbvs_base = true;
 
   // Jacobian 6x3 (vx,vy,wz)
@@ -195,7 +192,7 @@ vs_grasping_pepper::vs_grasping_pepper(ros::NodeHandle &nh): m_cam(),  m_camInfo
   //m_mem_proxy = new AL::ALMemoryProxy (m_ip, 9559);
   //m_asr_proxy = new AL::ALSpeechRecognitionProxy (m_ip, 9559);
   m_vocabulary.push_back("Pepper, Can you bring me the box of tabasco?");
-  m_vocabulary.push_back("give me the box please");
+  m_vocabulary.push_back("please, give me the box");
 
   m_pSpeechRecognition->call<void>("pause", true);
   m_pSpeechRecognition->call<void>("setVisualExpression", false);
@@ -208,11 +205,17 @@ vs_grasping_pepper::vs_grasping_pepper(ros::NodeHandle &nh): m_cam(),  m_camInfo
   m_pSpeechRecognition->call<void>("pause", false);
   m_pSpeechRecognition->call<void>("subscribe", "request_ASR");
 
+  try
+  {
+    m_pMemory.call<void>("removeData", "WordRecognized");
+  }
+  catch (const std::exception& e) { // reference to the base of a polymorphic object
+    std::cout << e.what(); // information from length_error printed
+  }
+
   m_pTextToSpeech.call<void>("setLanguage", "English");
 
-
   // PBVS Visual Servoing, using information coming from the MBT
-
   m_t.setFeatureTranslationType(vpFeatureTranslation::cdMc);
   m_tu.setFeatureThetaURotationType(vpFeatureThetaU::cdRc);
 
@@ -244,7 +247,7 @@ vs_grasping_pepper::vs_grasping_pepper(ros::NodeHandle &nh): m_cam(),  m_camInfo
   //Interaction matrix
   m_L.resize(1,6);
   m_L[0][0] = -1;
-  m_min_dist = 0.7;
+  m_min_dist = 0.47;
   m_angleMin = 0.0;
   m_angleMax = 0.0;
 
@@ -260,11 +263,8 @@ vs_grasping_pepper::~vs_grasping_pepper(){
   robot->getMotionProxy()->call<void>("setSmartStiffnessEnabled", true);
   robot->getMotionProxy()->call<void>("setMoveArmsEnabled", true, true);
 
-
   m_base_task.kill();
-
 }
-
 
 void  vs_grasping_pepper::initializationVS()
 {
@@ -410,10 +410,20 @@ void vs_grasping_pepper::spin()
 
     if (m_state == AnswerRequest)
     {
-      vpDisplay::displayText(I, 30, 30, "Waiting for command", vpColor::green);
+      vpDisplay::displayText(I, 30, 30, "Waiting for a command", vpColor::green);
 
-      qi::AnyValue data_word_recognized = m_pMemory.call<qi::AnyValue>("getData", "WordRecognized");
-      qi::AnyReferenceVector result_speech = data_word_recognized.asListValuePtr();
+      qi::AnyValue data_word_recognized;
+      qi::AnyReferenceVector result_speech;
+
+      try{
+        data_word_recognized = m_pMemory.call<qi::AnyValue>("getData", "WordRecognized");
+        result_speech = data_word_recognized.asListValuePtr();
+      }
+      catch(const std::exception& e) {
+        std::cout << e.what();
+      }
+
+
       static bool requeste_received = false;
 
       if (ret && button == vpMouseButton::button1)
@@ -422,10 +432,10 @@ void vs_grasping_pepper::spin()
         ret = false;
       }
 
-      if ( ((result_speech[0].content().toString()) == m_vocabulary[0] && (double (result_speech[1].content().toFloat()) > 0.2 ))|| requeste_received ) // Request: bring me the box
+      if ( !result_speech.empty() &&((result_speech[0].content().toString()) == m_vocabulary[0] && (double (result_speech[1].content().toFloat()) > 0.2 ))|| requeste_received ) // Request: bring me the box
       {
-        std::cout << "Recognized: " << result_speech[0].content().toString() << "with confidence of " << result_speech[1].content().toFloat() << std::endl;
-        m_pSpeechRecognition->call<void>("unsubscribe:", "request_ASR");
+        //std::cout << "Recognized: " << result_speech[0].content().toString() << "with confidence of " << result_speech[1].content().toFloat() << std::endl;
+        m_pSpeechRecognition->call<void>("unsubscribe", "request_ASR");
         m_pTextToSpeech.async<void>("say", "OK, Give me one minute. Or two.");
         m_state = ServoBase;// WaitForServoBase; // HACK for VIDEO
       }
@@ -435,14 +445,14 @@ void vs_grasping_pepper::spin()
     if (m_state == WaitForServoBase)
     {
 
-      vpDisplay::displayText(I, 30, 30, "Left click to Start the base PBVS, middl click for the TLD tracking ", vpColor::green);
+     // vpDisplay::displayText(I, 30, 30, "Left click to Start the base PBVS, middl click for the TLD tracking ", vpColor::green);
 
       if (ret && button == vpMouseButton::button1)
       {
         //robot->getPosition(m_bodyJointNames,m_bodyJointValues,true);
         // m_bodyJointValues = m_qiProxy.call< std::vector<double> >("getAngles", m_bodyJointNames, 1);
         if(goToInitialPBVSPoseBase(m_pMotion))
-          m_state = ServoBase;
+          m_state = AnswerRequest;
         ret = false;
       }
 
@@ -521,11 +531,11 @@ void vs_grasping_pepper::spin()
 
       if (m_servo_enabled && !this->computeBasePBVSControlLaw())
       {
-        vpDisplay::displayText(I, 30, 30, "Servo Base enabled", vpColor::green);
+        vpDisplay::displayText(I, 30, 30, "PBVS Base enabled", vpColor::green);
       }
       else
       {
-        vpDisplay::displayText(I, 30, 30, "Middle click to enable the base VS, left click to grasp", vpColor::green);
+        //vpDisplay::displayText(I, 30, 30, "Middle click to enable the base VS, left click to grasp", vpColor::green);
         robot->stopBase();
       }
 
@@ -539,14 +549,14 @@ void vs_grasping_pepper::spin()
 
     if (m_state == GoToInitialPosition)
     {
-      vpDisplay::displayText(I, 30, 30, "Click to move the robot to the initial position", vpColor::green);
+      //vpDisplay::displayText(I, 30, 30, "Click to move the robot to the initial position", vpColor::green);
 
-      if (ret && button == vpMouseButton::button1)
-      {
+//      if (ret && button == vpMouseButton::button1)
+//      {
         if(goTointialPose(m_pMotion))
           m_state = Servoing;
-        ret = false;
-      }
+//        ret = false;
+//      }
     }
 
     if (m_state == Servoing)
@@ -563,11 +573,11 @@ void vs_grasping_pepper::spin()
       {
         if (m_servo_enabled && !this->computeArmControlLaw())
         {
-          vpDisplay::displayText(I, 30, 30, "Servo enabled", vpColor::green);
+          vpDisplay::displayText(I, 30, 30, "PBVS Arm enabled", vpColor::green);
         }
         else
         {
-          vpDisplay::displayText(I, 30, 30, "Servo disable or finished: middle click to start the VS, left click to grasp", vpColor::green);
+         // vpDisplay::displayText(I, 30, 30, "Servo disable or finished: middle click to start the VS, left click to grasp", vpColor::green);
           robot->stop(m_jointNames_arm);
         }
       }
@@ -581,13 +591,13 @@ void vs_grasping_pepper::spin()
         vpColVector q(2,0.);
         robot->setVelocity(m_jointNames_head, q);
 
-        // robot->stopPepperControl();
+        robot->stopPepperControl();
       }
     }
 
     if (m_state == Grasp)
     {
-      vpDisplay::displayText(I, 30, 30, "Closing", vpColor::green);
+      vpDisplay::displayText(I, 30, 30, "Grasping object", vpColor::green);
       robot->setStiffness("RHand", 1.0);
       robot->getMotionProxy()->call<void>("setAngles","RHand", 0.0, 0.9);
 
@@ -601,7 +611,7 @@ void vs_grasping_pepper::spin()
     if (m_state == RaiseArm)
     {
       bool static first_time = true;
-      vpDisplay::displayText(I, 30, 30, "Middle click to follow a person, left click to open the hand", vpColor::green);
+      //vpDisplay::displayText(I, 30, 30, "Middle click to follow a person", vpColor::green);
       if (first_time)
       {
         m_pTextToSpeech.async<void>("say", "I got it!");
@@ -616,21 +626,17 @@ void vs_grasping_pepper::spin()
         std::cout << "Actual angle: " <<  angle << std::endl;
         //robot->getProxy()->setAngles(joint_name, angle, 0.02);
         robot->setPosition(joint_name, angle, 0.02);
-        std::vector<float> q;
-        q.resize(2);
-        q[0] = 0.0;
-        q[1] = vpMath::rad(-19.0);
+        robot->setStiffness(m_jointNames_head, 1.0);
         //robot->getProxy()->setAngles(m_jointNames_head, q, 0.04);
-        robot->setPosition(m_jointNames_head, q, 0.04);
 
         first_time = false;
       }
 
-      if (ret && button == vpMouseButton::button1)
-      {
-        m_state = OpenHand;
-        ret = false;
-      }
+//      if (ret && button == vpMouseButton::button1)
+//      {
+//        m_state = OpenHand;
+//        ret = false;
+//      }
       if (ret && button == vpMouseButton::button2)
       {
         m_state = Rotate90;
@@ -641,26 +647,31 @@ void vs_grasping_pepper::spin()
     if (m_state == Rotate90)
     {
       std::cout << " start rotate" << std::endl;
-      vpDisplay::displayText(I, 30, 30, "left click to move the head", vpColor::green);
+      vpDisplay::displayText(I, 30, 30, "Person detection", vpColor::green);
       static double time_rotate_init = vpTime::measureTimeSecond();
 
-      //robot->startPepperControl();
       //robot->getProxy()->moveTo(-0.1,0.0,0.0);
       static bool first_time_rotate = true;
       if (first_time_rotate)
       {
-        robot->moveTo(-0.1, 0.0 , vpMath::rad(-170.0));
-        m_pTextToSpeech.async<void>("say", "Where are you?");
+        robot->moveTo(-0.10, 0.0 , vpMath::rad(-175.0));
         first_time_rotate = false;
+        std::vector<float> q;
+        q.resize(2);
+        q[0] = 0.0;
+        q[1] = vpMath::rad(-19.0);
+        robot->setPosition(m_jointNames_head, q, 0.04);
       }
       if (vpTime::measureTimeSecond() - time_rotate_init > 5.0)
       {
+        robot->startPepperControl();
+        m_pTextToSpeech.async<void>("say", "Where are you?");
         std::cout << " start follow person" << std::endl;
         m_state = FollowPerson;
         robot->setStiffness(m_jointNames_head, 1.f);
         m_follow_people = new vpPepperFollowPeople(m_session, robot, m_pSpeechRecognition, m_vocabulary);
         std::cout << " set follow person" << std::endl;
-        m_follow_people->setDesiredDistance(0.94);
+        m_follow_people->setDesiredDistance(0.98);
         m_follow_people->setReverse(true);
         m_follow_people->activateTranslationBase();
        // vpAdaptiveGain gain(0.9, 0.7, 7);
@@ -715,11 +726,11 @@ void vs_grasping_pepper::spin()
         robot->setVelocity(m_jointNames_head, head_vel);
         robot->setBaseVelocity(final_vel[0], final_vel[1], final_vel[2]);
 
-        vpDisplay::displayText(I, 30, 30, "Servo Base enabled", vpColor::green);
+        vpDisplay::displayText(I, 30, 30, "IBVS Base enabled", vpColor::green);
       }
       else
       {
-        vpDisplay::displayText(I, 30, 30, "Middle click to enable/disable following a person, left click to opend the hand", vpColor::green);
+        //vpDisplay::displayText(I, 30, 30, "Middle click to enable/disable following a person, left click to opend the hand", vpColor::green);
         m_follow_people->stop();
         robot->stopBase();
       }
@@ -1312,7 +1323,7 @@ void  vs_grasping_pepper::getLaserCb(const sensor_msgs::LaserScanConstPtr &msg)
     if (i > 22 && i < 38)//msg->ranges[i] >= 0)
     {
       m_laser_data.push_back(msg->ranges[i]);
-      std::cout << "copy num" << i << "equal to" << msg->ranges[i] <<   std::endl;
+     // std::cout << "copy num" << i << "equal to" << msg->ranges[i] <<   std::endl;
     }
   }
 
