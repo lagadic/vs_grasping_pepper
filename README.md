@@ -29,4 +29,4 @@ In this demo Pepper has to track a box, grasp it and deliver it to a human while
 `$ roslaunch pepper_launch mbt_tabasco_naoqi_driver.launch`
 
 ### Launch Demo
-'$ roslaunch vs_grasping_pepper pbvs_arm_servo_right.launch'
+`$ roslaunch vs_grasping_pepper pbvs_arm_servo_right.launch`
